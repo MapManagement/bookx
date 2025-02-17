@@ -1,7 +1,7 @@
 using Grpc.Core;
-using bookx;
+using Bookx;
 
-namespace bookx.Services;
+namespace Bookx.Services;
 
 public class GreeterService : Greeter.GreeterBase
 {

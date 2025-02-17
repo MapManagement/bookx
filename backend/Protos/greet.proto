@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "bookx";
+option csharp_namespace = "Bookx";
 
 package greet;
 
