@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "Bookx";
+
+package book_related;
+
+service Books {
+  rpc GetSingleAuthor(SingleAuthorRequest) returns(SingleAuthor);
+  rpc GetSinglePublisher(SinglePublisherRequest) returns(SinglePublisher);
+  rpc GetSingleGenre(SingleGenreRequest) returns(SingleGenre);
+  rpc GetSingleLanguage(SingleLanguageRequest) returns(SingleLanguage);
+  rpc GetSingleBook(SingleBookRequest) returns(SingleBook);
+}
+
+// Author
+message SingleAuthorRequest { int32 id = 1; }
+
+message SingleAuthor {
+  int32 id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  google.protobuf.Timestamp birthdate = 4;
+}
+
+// Publisher
+message SinglePublisherRequest { int32 id = 1; }
+
+message SinglePublisher {
+  int32 id = 1;
+  string name = 2;
+}
+
+// Genre
+message SingleGenreRequest { int32 id = 1; }
+
+message SingleGenre {
+  int32 id = 1;
+  string name = 2;
+}
+
+// Language
+message SingleLanguageRequest { int32 id = 1; }
+
+message SingleLanguage {
+  int32 id = 1;
+  string name = 2;
+}
+
+// Book
+message SingleBookRequest { string isbn = 1; }
+
+message SingleBook {
+  string isbn = 1;
+  string title = 2;
+  bytes cover = 3;
+  int32 number_of_pages = 4;
+  string shop_link = 5;
+  string blurb = 6;
+  repeated SingleAuthor authors = 7;
+  SingleLanguage language = 8;
+  SinglePublisher publisher = 9;
+  repeated SingleGenre Genres = 10;
+}
