@@ -1,9 +1,11 @@
 using Bookx.Services;
+using Bookx.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddGrpc();
+builder.Services.AddDbContext<BookxContext>();
 
 var app = builder.Build();
 

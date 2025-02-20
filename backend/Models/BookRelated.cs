@@ -41,7 +41,7 @@ namespace Bookx.Models
 
     public class Language
     {
-        public int id { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
         public ICollection<Book> Books { get; } = new List<Book>();
     }
