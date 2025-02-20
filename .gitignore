@@ -132,3 +132,7 @@ $RECYCLE.BIN/
 
 _NCrunch*
 
+# Appsettings
+
+*appsettings*.json
+
