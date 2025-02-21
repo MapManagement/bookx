@@ -6,11 +6,17 @@ namespace Bookx.Models
     {
         private const string EnvConnectionString = "ENV_CONNECTION_STRING";
 
+        // book related
         public DbSet<Author> Authors { get; set; }
         public DbSet<Book> Books { get; set; }
         public DbSet<Publisher> Publishers { get; set; }
         public DbSet<Genre> Genres { get; set; }
         public DbSet<Language> Languages { get; set; }
+
+        // user related
+        public DbSet<User> Users { get; set; }
+        public DbSet<Tag> Tags { get; set; }
+        public DbSet<OwnedBook> OwnedBooks { get; set; }
 
         private readonly string _dbConnectionString;
 
@@ -60,6 +66,26 @@ namespace Bookx.Models
                 .WithOne(b => b.Language)
                 .HasForeignKey(b => b.LanguageId)
                 .IsRequired();
+
+            // TODO: how to distinguish login (username, mail...)?
+            modelBuilder.Entity<User>()
+                .HasKey(u => u.Id);
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Books)
+                .WithMany(b => b.Users)
+                .UsingEntity<OwnedBook>(
+                    u => u.HasOne<Book>().WithMany(b => b.Owners).HasForeignKey(o => o.BookIsbn),
+                    b => b.HasOne<User>().WithMany(u => u.OwnedBooks).HasForeignKey(o => o.UserId)
+                );
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Tags)
+                .WithOne(t => t.User)
+                .HasForeignKey(t => t.UserId);
+
+            modelBuilder.Entity<Tag>()
+                .HasKey(t => t.Id);
         }
     }
 }

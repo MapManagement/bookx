@@ -23,6 +23,9 @@ namespace Bookx.Models
         public int PublisherId { get; set; }
         public Publisher Publisher { get; set; } = null!;
         public ICollection<Genre> Genres { get; } = new List<Genre>();
+
+        public ICollection<User> Users { get; } = new List<User>();
+        public ICollection<OwnedBook> Owners { get; } = new List<OwnedBook>();
     }
 
     public class Publisher
