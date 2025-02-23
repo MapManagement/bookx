@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-import "google/protobuf/timestamp.proto";
-
-option csharp_namespace = "Bookx";
-
-package authentication;
-
-service Authenticator {}

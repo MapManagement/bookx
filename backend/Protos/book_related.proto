@@ -6,7 +6,8 @@ option csharp_namespace = "Bookx";
 
 package book_related;
 
-service Books {
+service BookService {
+  // read from server
   rpc GetSingleAuthor(SingleAuthorRequest) returns(SingleAuthor);
   rpc GetSinglePublisher(SinglePublisherRequest) returns(SinglePublisher);
   rpc GetSingleGenre(SingleGenreRequest) returns(SingleGenre);

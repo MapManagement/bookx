@@ -4,7 +4,7 @@ using Bookx.Helpers;
 
 namespace Bookx.Services;
 
-public class BookRelatedService : Books.BooksBase
+public class BookRelatedService : BookService.BookServiceBase
 {
     private readonly ILogger<BookRelatedService> _logger;
     private readonly BookxContext _bookxContext;
