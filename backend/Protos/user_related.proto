@@ -3,7 +3,7 @@ syntax = "proto3";
 import "google/protobuf/timestamp.proto";
 import "book_related.proto";
 
-option csharp_namespace = "Bookx";
+option csharp_namespace = "Bookx.ProtoServices";
 
 package user_related;
 

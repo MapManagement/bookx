@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 
-option csharp_namespace = "Bookx";
+option csharp_namespace = "Bookx.ProtoServices";
 
 package book_related;
 

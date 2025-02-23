@@ -1,10 +1,18 @@
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
 
 namespace Bookx.Models
 {
     public class BookxContext : DbContext
     {
-        private const string EnvConnectionString = "ENV_CONNECTION_STRING";
+        #region Fields
+
+        private const string EnvDbConnectionString = "DB_CONNECTION_STRING";
+        private readonly string _dbConnectionString;
+
+        #endregion
+
+        #region Properties
 
         // book related
         public DbSet<Author> Authors { get; set; }
@@ -18,12 +26,18 @@ namespace Bookx.Models
         public DbSet<Tag> Tags { get; set; }
         public DbSet<OwnedBook> OwnedBooks { get; set; }
 
-        private readonly string _dbConnectionString;
+        #endregion
+
+        #region Constructor
 
         public BookxContext()
         {
-            _dbConnectionString = Environment.GetEnvironmentVariable(EnvConnectionString);
+            _dbConnectionString = Environment.GetEnvironmentVariable(EnvDbConnectionString);
         }
+
+        #endregion
+
+        #region Overrides
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -87,5 +101,7 @@ namespace Bookx.Models
             modelBuilder.Entity<Tag>()
                 .HasKey(t => t.Id);
         }
+
+        #endregion
     }
 }
