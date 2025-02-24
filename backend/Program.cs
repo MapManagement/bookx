@@ -8,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddGrpc();
+// TODO: in production?
+builder.Services.AddGrpcReflection();
 builder.Services.AddDbContext<BookxContext>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -26,6 +28,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+// TODO: in production?
+app.MapGrpcReflectionService();
 
 app.UseAuthentication();
 app.UseAuthorization();
