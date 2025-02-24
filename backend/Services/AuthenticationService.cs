@@ -25,7 +25,7 @@ public class AuthenticationService : Authenticator.AuthenticatorBase
         var loginReply = new LoginReply()
         {
             ValidLogin = false,
-            Jwt = string.Empty
+            Token = string.Empty
         };
 
         if (loginUser is null)
@@ -49,10 +49,8 @@ public class AuthenticationService : Authenticator.AuthenticatorBase
         var jwt = CryptographyHelper.GenerateJwt(request.Username);
 
         loginReply.ValidLogin = true;
-        loginReply.Jwt = jwt;
+        loginReply.Token = jwt;
 
         return Task.FromResult(loginReply);
     }
-
-
 }

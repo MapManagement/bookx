@@ -16,6 +16,6 @@ message LoginRequest {
 
 message LoginReply {
   bool ValidLogin = 1;
-  string Jwt = 2;
+  string Token = 2;
   optional string FailureMessage = 3;
 }

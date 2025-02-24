@@ -2,7 +2,6 @@ using System.Security.Cryptography;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Bookx.Helpers;
@@ -11,12 +10,13 @@ public static class CryptographyHelper
 {
     #region Fields
 
-    internal static readonly SymmetricSecurityKey JwtSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("YOUR_KEY"));
     private const string EnvPasswordPepper = "PASSWORD_PEPPER";
+    private const string EnvJwtSecurityKey = "JWT_SECURITY_KEY";
     private const int _keySize = 64;
     private const int _iterations = 500_000;
     private static readonly HashAlgorithmName _hashAlgorithmName = HashAlgorithmName.SHA3_512;
     private static readonly string _passwordPepper;
+    internal static readonly SymmetricSecurityKey JwtSecurityKey;
 
     #endregion
 
@@ -25,6 +25,8 @@ public static class CryptographyHelper
     static CryptographyHelper()
     {
         _passwordPepper = Environment.GetEnvironmentVariable(EnvPasswordPepper);
+        string securityKey = Environment.GetEnvironmentVariable(EnvJwtSecurityKey);
+        JwtSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityKey));
     }
 
     #endregion
