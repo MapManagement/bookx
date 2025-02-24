@@ -16,9 +16,10 @@ public class BookRelatedService : BookService.BookServiceBase
 
     #region Constructor
 
-    public BookRelatedService(ILogger<BookRelatedService> logger)
+    public BookRelatedService(ILogger<BookRelatedService> logger, BookxContext bookxContext)
     {
         _logger = logger;
+        _bookxContext = bookxContext;
     }
 
     #endregion

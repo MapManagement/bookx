@@ -28,9 +28,9 @@ public class AuthenticationService : Authenticator.AuthenticatorBase
             Token = string.Empty
         };
 
-        if (loginUser is null)
+        if (loginUser == null || string.IsNullOrWhiteSpace(request.Username))
         {
-            loginReply.FailureMessage = "No username has been specified.";
+            loginReply.FailureMessage = "Login credentials are wrong";
             return Task.FromResult(loginReply);
         }
 
