@@ -14,4 +14,8 @@ message LoginRequest {
   string password = 2;
 }
 
-message LoginReply { string JwtToken = 1; }
+message LoginReply {
+  bool ValidLogin = 1;
+  string Jwt = 2;
+  optional string FailureMessage = 3;
+}

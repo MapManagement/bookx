@@ -2,19 +2,30 @@ using Grpc.Core;
 using Bookx.Models;
 using Bookx.Helpers;
 using Bookx.ProtoServices;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Bookx.Services;
 
 public class BookRelatedService : BookService.BookServiceBase
 {
+    #region Fields
     private readonly ILogger<BookRelatedService> _logger;
     private readonly BookxContext _bookxContext;
+
+    #endregion
+
+    #region Constructor
 
     public BookRelatedService(ILogger<BookRelatedService> logger)
     {
         _logger = logger;
     }
 
+    #endregion
+
+    #region Overrides
+
+    [Authorize]
     public override Task<SingleAuthor> GetSingleAuthor(SingleAuthorRequest request, ServerCallContext context)
     {
         var dbAuthor = _bookxContext.Find<Author>(request.Id);
@@ -23,6 +34,7 @@ public class BookRelatedService : BookService.BookServiceBase
         return Task.FromResult(protoAuthor);
     }
 
+    [Authorize]
     public override Task<SingleGenre> GetSingleGenre(SingleGenreRequest request, ServerCallContext context)
     {
         var dbGenre = _bookxContext.Find<Genre>(request.Id);
@@ -31,6 +43,7 @@ public class BookRelatedService : BookService.BookServiceBase
         return Task.FromResult(protoGenre);
     }
 
+    [Authorize]
     public override Task<SingleLanguage> GetSingleLanguage(SingleLanguageRequest request, ServerCallContext context)
     {
         var dbLanguage = _bookxContext.Find<Language>(request.Id);
@@ -39,6 +52,7 @@ public class BookRelatedService : BookService.BookServiceBase
         return Task.FromResult(protoLanguage);
     }
 
+    [Authorize]
     public override Task<SinglePublisher> GetSinglePublisher(SinglePublisherRequest request, ServerCallContext context)
     {
         var dbPublisher = _bookxContext.Find<Publisher>(request.Id);
@@ -47,6 +61,7 @@ public class BookRelatedService : BookService.BookServiceBase
         return Task.FromResult(protoPublisher);
     }
 
+    [Authorize]
     public override Task<SingleBook> GetSingleBook(SingleBookRequest request, ServerCallContext context)
     {
         var dbBook = _bookxContext.Find<Book>(request.Isbn);
@@ -54,4 +69,6 @@ public class BookRelatedService : BookService.BookServiceBase
 
         return Task.FromResult(protoBook);
     }
+
+    #endregion
 }

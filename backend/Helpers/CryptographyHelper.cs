@@ -1,5 +1,9 @@
 using System.Security.Cryptography;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Bookx.Helpers;
 
@@ -7,6 +11,7 @@ public static class CryptographyHelper
 {
     #region Fields
 
+    internal static readonly SymmetricSecurityKey JwtSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("YOUR_KEY"));
     private const string EnvPasswordPepper = "PASSWORD_PEPPER";
     private const int _keySize = 64;
     private const int _iterations = 500_000;
@@ -47,6 +52,27 @@ public static class CryptographyHelper
             );
 
         return areHashesEqual;
+    }
+
+    public static string GenerateJwt(string username)
+    {
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.Name, username)
+        };
+
+        var credentials = new SigningCredentials(JwtSecurityKey, SecurityAlgorithms.Sha512);
+        // TODO: read domain form env var?
+        var jwt = new JwtSecurityToken(
+                issuer: "YOUR_DOMAIN",
+                claims: claims,
+                expires: DateTime.Now.AddDays(1),
+                signingCredentials: credentials
+        );
+
+        string serializedToken = new JwtSecurityTokenHandler().WriteToken(jwt);
+
+        return serializedToken;
     }
 
     private static string HashSaltedPepperedText(string text, string salt)
