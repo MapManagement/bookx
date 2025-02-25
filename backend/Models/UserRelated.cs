@@ -7,7 +7,7 @@ namespace Bookx.Models
         public string Password { get; set; }
         public string PasswordSalt { get; set; }
         public DateTime JoinDatetime { get; set; }
-        public string MailAdresse { get; set; }
+        public string MailAddress { get; set; }
         public ICollection<Tag> Tags { get; } = new List<Tag>();
         public ICollection<Book> Books { get; } = new List<Book>();
         public ICollection<OwnedBook> OwnedBooks { get; set; } = new List<OwnedBook>();

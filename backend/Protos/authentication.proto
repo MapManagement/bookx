@@ -6,6 +6,7 @@ package authentication;
 
 service Authenticator {
   rpc Login(LoginRequest) returns(LoginReply);
+  rpc Register(RegisterRequest) returns(RegisterReply);
   // rpc Logout;
 }
 
@@ -16,6 +17,18 @@ message LoginRequest {
 
 message LoginReply {
   bool ValidLogin = 1;
+  string Token = 2;
+  optional string FailureMessage = 3;
+}
+
+message RegisterRequest {
+  string username = 1;
+  string password = 2;
+  string mail_address = 3;
+}
+
+message RegisterReply {
+  bool ValidRegistration = 1;
   string Token = 2;
   optional string FailureMessage = 3;
 }

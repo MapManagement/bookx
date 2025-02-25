@@ -52,6 +52,10 @@ namespace Bookx.Models
                 .HasKey(a => a.Id);
 
             modelBuilder.Entity<Author>()
+                .Property(a => a.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Author>()
                 .HasMany(a => a.Books)
                 .WithMany(b => b.Authors);
 
@@ -59,11 +63,19 @@ namespace Bookx.Models
                 .HasKey(g => g.Id);
 
             modelBuilder.Entity<Genre>()
+                .Property(g => g.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Genre>()
                 .HasMany(g => g.Books)
                 .WithMany(b => b.Genres);
 
             modelBuilder.Entity<Publisher>()
                 .HasKey(p => p.Id);
+
+            modelBuilder.Entity<Publisher>()
+                .Property(p => p.Id)
+                .ValueGeneratedOnAdd();
 
             modelBuilder.Entity<Publisher>()
                 .HasMany(p => p.Books)
@@ -75,14 +87,29 @@ namespace Bookx.Models
                 .HasKey(l => l.Id);
 
             modelBuilder.Entity<Language>()
+                .Property(l => l.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Language>()
                 .HasMany(l => l.Books)
                 .WithOne(b => b.Language)
                 .HasForeignKey(b => b.LanguageId)
                 .IsRequired();
 
-            // TODO: how to distinguish login (username, mail...)?
             modelBuilder.Entity<User>()
                 .HasKey(u => u.Id);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.MailAddress)
+                .IsUnique();
 
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Books)
@@ -99,6 +126,10 @@ namespace Bookx.Models
 
             modelBuilder.Entity<Tag>()
                 .HasKey(t => t.Id);
+
+            modelBuilder.Entity<Tag>()
+                .Property(t => t.Id)
+                .ValueGeneratedOnAdd();
         }
 
         #endregion

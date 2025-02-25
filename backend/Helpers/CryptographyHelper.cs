@@ -14,7 +14,8 @@ public static class CryptographyHelper
     private const string EnvJwtSecurityKey = "JWT_SECURITY_KEY";
     private const int _keySize = 64;
     private const int _iterations = 500_000;
-    private static readonly HashAlgorithmName _hashAlgorithmName = HashAlgorithmName.SHA3_512;
+    private const string _jwtSecurityAlgorithm = SecurityAlgorithms.HmacSha384;
+    private static readonly HashAlgorithmName _passwordHashAlgorithm = HashAlgorithmName.SHA3_512;
     private static readonly string _passwordPepper;
     internal static readonly SymmetricSecurityKey JwtSecurityKey;
 
@@ -63,7 +64,7 @@ public static class CryptographyHelper
             new Claim(ClaimTypes.Name, username)
         };
 
-        var credentials = new SigningCredentials(JwtSecurityKey, SecurityAlgorithms.Sha512);
+        var credentials = new SigningCredentials(JwtSecurityKey, _jwtSecurityAlgorithm);
         // TODO: read domain form env var?
         var jwt = new JwtSecurityToken(
                 issuer: "YOUR_DOMAIN",
@@ -85,7 +86,7 @@ public static class CryptographyHelper
                 Encoding.UTF8.GetBytes(text),
                 Convert.FromHexString(salt),
                 _iterations,
-                _hashAlgorithmName,
+                _passwordHashAlgorithm,
                 _keySize
             );
 

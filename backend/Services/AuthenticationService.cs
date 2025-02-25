@@ -30,7 +30,7 @@ public class AuthenticationService : Authenticator.AuthenticatorBase
 
         if (loginUser == null || string.IsNullOrWhiteSpace(request.Username))
         {
-            loginReply.FailureMessage = "Login credentials are wrong";
+            loginReply.FailureMessage = "Login credentials are wrong.";
             return Task.FromResult(loginReply);
         }
 
@@ -52,5 +52,61 @@ public class AuthenticationService : Authenticator.AuthenticatorBase
         loginReply.Token = jwt;
 
         return Task.FromResult(loginReply);
+    }
+
+    public override Task<RegisterReply> Register(RegisterRequest request, ServerCallContext context)
+    {
+        var registerReply = new RegisterReply()
+        {
+            ValidRegistration = false,
+            Token = string.Empty
+        };
+
+        if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password) || string.IsNullOrEmpty(request.MailAddress))
+        {
+            registerReply.FailureMessage = "All fields are required.";
+            return Task.FromResult(registerReply);
+        }
+
+        var usernameAlreadyTaken = _bookxContext.Users
+            .Where(u => u.Username == request.Username)
+            .Any();
+
+        var emailAddressAlreadyTaken = _bookxContext.Users
+            .Where(u => u.MailAddress == request.MailAddress)
+            .Any();
+
+        if (usernameAlreadyTaken)
+        {
+            registerReply.FailureMessage = "The username is not available.";
+            return Task.FromResult(registerReply);
+        }
+
+        if (emailAddressAlreadyTaken)
+        {
+            registerReply.FailureMessage = "This mail address has already been registered.";
+            return Task.FromResult(registerReply);
+        }
+
+        (string passwordHash, string passwordSalt) = CryptographyHelper.CreatePasswordHash(request.Password);
+
+        User newUser = new User()
+        {
+            Username = request.Username,
+            Password = passwordHash,
+            PasswordSalt = passwordSalt,
+            JoinDatetime = DateTime.Now.ToUniversalTime(),
+            MailAddress = request.MailAddress
+        };
+
+        _bookxContext.Users.Add(newUser);
+        _bookxContext.SaveChanges();
+
+        var jwt = CryptographyHelper.GenerateJwt(request.Username);
+
+        registerReply.ValidRegistration = true;
+        registerReply.Token = jwt;
+
+        return Task.FromResult(registerReply);
     }
 }
