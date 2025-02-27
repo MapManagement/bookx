@@ -39,7 +39,7 @@ public static class CryptographyHelper
         string passwordSalt = GeneratePasswordSalt();
         string passwordHash = HashSaltedPepperedText(password, passwordSalt);
 
-        return (passwordHash, password);
+        return (passwordHash, passwordSalt);
     }
 
     public static bool VerfiyPasswordHash(string password, string salt, string dbHash)
@@ -83,7 +83,7 @@ public static class CryptographyHelper
         string pepperedText = new StringBuilder(text).Append(_passwordPepper).ToString();
 
         byte[] computedHash = Rfc2898DeriveBytes.Pbkdf2(
-                Encoding.UTF8.GetBytes(text),
+                Encoding.UTF8.GetBytes(pepperedText),
                 Convert.FromHexString(salt),
                 _iterations,
                 _passwordHashAlgorithm,
