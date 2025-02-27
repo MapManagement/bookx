@@ -12,11 +12,13 @@ public static class CryptographyHelper
 
     private const string EnvPasswordPepper = "PASSWORD_PEPPER";
     private const string EnvJwtSecurityKey = "JWT_SECURITY_KEY";
+    private const string EnvJwtIssuerDomain = "JWT_ISSUER_DOMAIN";
     private const int _keySize = 64;
     private const int _iterations = 500_000;
     private const string _jwtSecurityAlgorithm = SecurityAlgorithms.HmacSha384;
     private static readonly HashAlgorithmName _passwordHashAlgorithm = HashAlgorithmName.SHA3_512;
     private static readonly string _passwordPepper;
+    private static readonly string _jwtIssuerDomain;
     internal static readonly SymmetricSecurityKey JwtSecurityKey;
 
     #endregion
@@ -26,6 +28,7 @@ public static class CryptographyHelper
     static CryptographyHelper()
     {
         _passwordPepper = Environment.GetEnvironmentVariable(EnvPasswordPepper);
+        _jwtIssuerDomain = Environment.GetEnvironmentVariable(EnvJwtIssuerDomain);
         string securityKey = Environment.GetEnvironmentVariable(EnvJwtSecurityKey);
         JwtSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityKey));
     }
@@ -67,7 +70,7 @@ public static class CryptographyHelper
         var credentials = new SigningCredentials(JwtSecurityKey, _jwtSecurityAlgorithm);
         // TODO: read domain form env var?
         var jwt = new JwtSecurityToken(
-                issuer: "YOUR_DOMAIN",
+                issuer: _jwtIssuerDomain,
                 claims: claims,
                 expires: DateTime.Now.AddDays(1),
                 signingCredentials: credentials
