@@ -60,11 +60,12 @@ public static class CryptographyHelper
         return areHashesEqual;
     }
 
-    public static string GenerateJwt(string username)
+    public static string GenerateJwt(int userId, string userMailAddress)
     {
         var claims = new[]
         {
-            new Claim(ClaimTypes.Name, username)
+            new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, userMailAddress)
         };
 
         var credentials = new SigningCredentials(JwtSecurityKey, _jwtSecurityAlgorithm);

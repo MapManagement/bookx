@@ -46,7 +46,7 @@ public class AuthenticationService : Authenticator.AuthenticatorBase
             return Task.FromResult(loginReply);
         }
 
-        var jwt = CryptographyHelper.GenerateJwt(request.Username);
+        var jwt = CryptographyHelper.GenerateJwt(loginUser.Id, loginUser.MailAddress);
 
         loginReply.ValidLogin = true;
         loginReply.Token = jwt;
@@ -102,7 +102,7 @@ public class AuthenticationService : Authenticator.AuthenticatorBase
         _bookxContext.Users.Add(newUser);
         _bookxContext.SaveChanges();
 
-        var jwt = CryptographyHelper.GenerateJwt(request.Username);
+        var jwt = CryptographyHelper.GenerateJwt(newUser.Id, newUser.MailAddress);
 
         registerReply.ValidRegistration = true;
         registerReply.Token = jwt;
