@@ -9,16 +9,17 @@ package book_related;
 
 service BookService {
   // read from server
-  rpc GetSingleAuthor(SingleAuthorRequest) returns(RequestReply);
-  rpc GetSinglePublisher(SinglePublisherRequest) returns(RequestReply);
-  rpc GetSingleGenre(SingleGenreRequest) returns(RequestReply);
-  rpc GetSingleLanguage(SingleLanguageRequest) returns(RequestReply);
-  rpc GetSingleBook(SingleBookRequest) returns(RequestReply);
+  rpc GetSingleAuthor(SingleAuthorRequest) returns(BookRelatedRequestReply);
+  rpc GetSinglePublisher(SinglePublisherRequest)
+      returns(BookRelatedRequestReply);
+  rpc GetSingleGenre(SingleGenreRequest) returns(BookRelatedRequestReply);
+  rpc GetSingleLanguage(SingleLanguageRequest) returns(BookRelatedRequestReply);
+  rpc GetSingleBook(SingleBookRequest) returns(BookRelatedRequestReply);
 }
 
 enum RequestStatus { FOUND = 0; NOT_FOUND = 1; RESTRICTED = 2; ERROR = 3; }
 
-message RequestReply {
+message BookRelatedRequestReply {
   RequestStatus status = 1;
   optional string message_text = 2;
   oneof message_type {
@@ -38,7 +39,7 @@ message SingleAuthor {
   int32 id = 1;
   string first_name = 2;
   string last_name = 3;
-  google.protobuf.Timestamp birthdate = 4;
+  optional google.protobuf.Timestamp birthdate = 4;
 }
 
 // Publisher
@@ -75,8 +76,9 @@ message SingleBook {
   int32 number_of_pages = 4;
   string shop_link = 5;
   string blurb = 6;
-  repeated SingleAuthor authors = 7;
-  SingleLanguage language = 8;
-  SinglePublisher publisher = 9;
-  repeated SingleGenre Genres = 10;
+  google.protobuf.Timestamp release_date = 7;
+  repeated SingleAuthor authors = 8;
+  SingleLanguage language = 9;
+  SinglePublisher publisher = 10;
+  repeated SingleGenre Genres = 11;
 }

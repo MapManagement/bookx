@@ -28,7 +28,7 @@ public class BookRelatedService : BookService.BookServiceBase
     #region Overrides
 
     [Authorize]
-    public override Task<RequestReply> GetSingleAuthor(SingleAuthorRequest request, ServerCallContext context)
+    public override Task<BookRelatedRequestReply> GetSingleAuthor(SingleAuthorRequest request, ServerCallContext context)
     {
         var dbAuthor = _bookxContext.Find<Author>(request.Id);
 
@@ -37,7 +37,7 @@ public class BookRelatedService : BookService.BookServiceBase
 
         var protoAuthor = ProtoDbEntityConverter.DbToProtoAuthor(dbAuthor);
 
-        var protoReply = new RequestReply()
+        var protoReply = new BookRelatedRequestReply()
         {
             Status = RequestStatus.Found,
             Author = protoAuthor
@@ -47,7 +47,7 @@ public class BookRelatedService : BookService.BookServiceBase
     }
 
     [Authorize]
-    public override Task<RequestReply> GetSingleGenre(SingleGenreRequest request, ServerCallContext context)
+    public override Task<BookRelatedRequestReply> GetSingleGenre(SingleGenreRequest request, ServerCallContext context)
     {
         var dbGenre = _bookxContext.Find<Genre>(request.Id);
 
@@ -56,7 +56,7 @@ public class BookRelatedService : BookService.BookServiceBase
 
         var protoGenre = ProtoDbEntityConverter.DbToProtoGenre(dbGenre);
 
-        var protoReply = new RequestReply()
+        var protoReply = new BookRelatedRequestReply()
         {
             Status = RequestStatus.Found,
             Genre = protoGenre
@@ -66,7 +66,7 @@ public class BookRelatedService : BookService.BookServiceBase
     }
 
     [Authorize]
-    public override Task<RequestReply> GetSingleLanguage(SingleLanguageRequest request, ServerCallContext context)
+    public override Task<BookRelatedRequestReply> GetSingleLanguage(SingleLanguageRequest request, ServerCallContext context)
     {
         var dbLanguage = _bookxContext.Find<Language>(request.Id);
 
@@ -75,7 +75,7 @@ public class BookRelatedService : BookService.BookServiceBase
 
         var protoLanguage = ProtoDbEntityConverter.DbToProtoLanguage(dbLanguage);
 
-        var protoReply = new RequestReply()
+        var protoReply = new BookRelatedRequestReply()
         {
             Status = RequestStatus.Found,
             Language = protoLanguage
@@ -85,7 +85,7 @@ public class BookRelatedService : BookService.BookServiceBase
     }
 
     [Authorize]
-    public override Task<RequestReply> GetSinglePublisher(SinglePublisherRequest request, ServerCallContext context)
+    public override Task<BookRelatedRequestReply> GetSinglePublisher(SinglePublisherRequest request, ServerCallContext context)
     {
         var dbPublisher = _bookxContext.Find<Publisher>(request.Id);
 
@@ -94,7 +94,7 @@ public class BookRelatedService : BookService.BookServiceBase
 
         var protoPublisher = ProtoDbEntityConverter.DbToProtoPublisher(dbPublisher);
 
-        var protoReply = new RequestReply()
+        var protoReply = new BookRelatedRequestReply()
         {
             Status = RequestStatus.Found,
             Publisher = protoPublisher
@@ -104,7 +104,7 @@ public class BookRelatedService : BookService.BookServiceBase
     }
 
     [Authorize]
-    public override Task<RequestReply> GetSingleBook(SingleBookRequest request, ServerCallContext context)
+    public override Task<BookRelatedRequestReply> GetSingleBook(SingleBookRequest request, ServerCallContext context)
     {
         var dbBook = _bookxContext.Find<Book>(request.Isbn);
 
@@ -113,7 +113,7 @@ public class BookRelatedService : BookService.BookServiceBase
 
         var protoBook = ProtoDbEntityConverter.DbToProtoBook(dbBook);
 
-        var protoReply = new RequestReply()
+        var protoReply = new BookRelatedRequestReply()
         {
             Status = RequestStatus.Found,
             Book = protoBook
@@ -126,9 +126,9 @@ public class BookRelatedService : BookService.BookServiceBase
 
     #region Methods
 
-    private RequestReply CreateNotFoundReply(string messageText)
+    private BookRelatedRequestReply CreateNotFoundReply(string messageText)
     {
-        return new RequestReply()
+        return new BookRelatedRequestReply()
         {
             Status = RequestStatus.NotFound,
             MessageText = messageText,

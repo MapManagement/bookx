@@ -8,13 +8,17 @@ public static class ProtoDbEntityConverter
 {
     public static SingleAuthor DbToProtoAuthor(Author dbAuthor)
     {
-        return new SingleAuthor()
+        var protoAuthor = new SingleAuthor()
         {
             Id = dbAuthor.Id,
             FirstName = dbAuthor.FirstName,
             LastName = dbAuthor.LastName,
-            Birthdate = Timestamp.FromDateTime(dbAuthor.Birthdate.Value)
         };
+
+        if (dbAuthor.Birthdate != null)
+            protoAuthor.Birthdate = Timestamp.FromDateTime(dbAuthor.Birthdate.Value.ToDateTime(TimeOnly.MinValue));
+
+        return protoAuthor;
     }
 
     public static SingleLanguage DbToProtoLanguage(Language dbLanguage)
@@ -73,5 +77,22 @@ public static class ProtoDbEntityConverter
         }
 
         return protoBook;
+    }
+
+    public static SingleOwnedBook DbToProtoOwnedBook(OwnedBook dbOwnedBook)
+    {
+        var protoBook = DbToProtoBook(dbOwnedBook.Book);
+
+        var protoOwnedBook = new SingleOwnedBook()
+        {
+            Id = dbOwnedBook.Id,
+            UserId = dbOwnedBook.UserId,
+            Book = protoBook,
+            Rating = dbOwnedBook.Rating,
+            Comment = dbOwnedBook.Comment,
+            WouldRecommend = dbOwnedBook.WouldRecommend
+        };
+
+        return protoOwnedBook;
     }
 }

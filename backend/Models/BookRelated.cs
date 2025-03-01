@@ -5,7 +5,7 @@ namespace Bookx.Models
         public int Id { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public DateTime? Birthdate { get; set; }
+        public DateOnly? Birthdate { get; set; }
         public ICollection<Book> Books { get; } = new List<Book>();
     }
 
@@ -17,6 +17,7 @@ namespace Bookx.Models
         public int NumerOfPages { get; set; }
         public string ShopLink { get; set; }
         public string Blurb { get; set; }
+        public DateOnly ReleaseDate { get; set; }
         public ICollection<Author> Authors { get; } = new List<Author>();
         public int LanguageId { get; set; }
         public Language Language { get; set; } = null!;
