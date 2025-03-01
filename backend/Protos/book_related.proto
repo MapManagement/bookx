@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "Bookx.ProtoServices";
@@ -8,11 +9,26 @@ package book_related;
 
 service BookService {
   // read from server
-  rpc GetSingleAuthor(SingleAuthorRequest) returns(SingleAuthor);
-  rpc GetSinglePublisher(SinglePublisherRequest) returns(SinglePublisher);
-  rpc GetSingleGenre(SingleGenreRequest) returns(SingleGenre);
-  rpc GetSingleLanguage(SingleLanguageRequest) returns(SingleLanguage);
-  rpc GetSingleBook(SingleBookRequest) returns(SingleBook);
+  rpc GetSingleAuthor(SingleAuthorRequest) returns(RequestReply);
+  rpc GetSinglePublisher(SinglePublisherRequest) returns(RequestReply);
+  rpc GetSingleGenre(SingleGenreRequest) returns(RequestReply);
+  rpc GetSingleLanguage(SingleLanguageRequest) returns(RequestReply);
+  rpc GetSingleBook(SingleBookRequest) returns(RequestReply);
+}
+
+enum RequestStatus { FOUND = 0; NOT_FOUND = 1; RESTRICTED = 2; ERROR = 3; }
+
+message RequestReply {
+  RequestStatus status = 1;
+  optional string message_text = 2;
+  oneof message_type {
+    SingleAuthor author = 3;
+    SinglePublisher publisher = 4;
+    SingleGenre genre = 5;
+    SingleLanguage language = 6;
+    SingleBook book = 7;
+    google.protobuf.Empty Null = 8;
+  }
 }
 
 // Author

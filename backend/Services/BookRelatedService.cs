@@ -1,4 +1,5 @@
 using Grpc.Core;
+using Google.Protobuf.WellKnownTypes;
 using Bookx.Models;
 using Bookx.Helpers;
 using Bookx.ProtoServices;
@@ -27,48 +28,112 @@ public class BookRelatedService : BookService.BookServiceBase
     #region Overrides
 
     [Authorize]
-    public override Task<SingleAuthor> GetSingleAuthor(SingleAuthorRequest request, ServerCallContext context)
+    public override Task<RequestReply> GetSingleAuthor(SingleAuthorRequest request, ServerCallContext context)
     {
         var dbAuthor = _bookxContext.Find<Author>(request.Id);
+
+        if (dbAuthor == null)
+            return Task.FromResult(CreateNotFoundReply($"Couldn't find any author with ID {request.Id}"));
+
         var protoAuthor = ProtoDbEntityConverter.DbToProtoAuthor(dbAuthor);
 
-        return Task.FromResult(protoAuthor);
+        var protoReply = new RequestReply()
+        {
+            Status = RequestStatus.Found,
+            Author = protoAuthor
+        };
+
+        return Task.FromResult(protoReply);
     }
 
     [Authorize]
-    public override Task<SingleGenre> GetSingleGenre(SingleGenreRequest request, ServerCallContext context)
+    public override Task<RequestReply> GetSingleGenre(SingleGenreRequest request, ServerCallContext context)
     {
         var dbGenre = _bookxContext.Find<Genre>(request.Id);
+
+        if (dbGenre == null)
+            return Task.FromResult(CreateNotFoundReply($"Couldn't find any genre with ID {request.Id}"));
+
         var protoGenre = ProtoDbEntityConverter.DbToProtoGenre(dbGenre);
 
-        return Task.FromResult(protoGenre);
+        var protoReply = new RequestReply()
+        {
+            Status = RequestStatus.Found,
+            Genre = protoGenre
+        };
+
+        return Task.FromResult(protoReply);
     }
 
     [Authorize]
-    public override Task<SingleLanguage> GetSingleLanguage(SingleLanguageRequest request, ServerCallContext context)
+    public override Task<RequestReply> GetSingleLanguage(SingleLanguageRequest request, ServerCallContext context)
     {
         var dbLanguage = _bookxContext.Find<Language>(request.Id);
+
+        if (dbLanguage == null)
+            return Task.FromResult(CreateNotFoundReply($"Couldn't find any language with ID {request.Id}"));
+
         var protoLanguage = ProtoDbEntityConverter.DbToProtoLanguage(dbLanguage);
 
-        return Task.FromResult(protoLanguage);
+        var protoReply = new RequestReply()
+        {
+            Status = RequestStatus.Found,
+            Language = protoLanguage
+        };
+
+        return Task.FromResult(protoReply);
     }
 
     [Authorize]
-    public override Task<SinglePublisher> GetSinglePublisher(SinglePublisherRequest request, ServerCallContext context)
+    public override Task<RequestReply> GetSinglePublisher(SinglePublisherRequest request, ServerCallContext context)
     {
         var dbPublisher = _bookxContext.Find<Publisher>(request.Id);
+
+        if (dbPublisher == null)
+            return Task.FromResult(CreateNotFoundReply($"Couldn't find any publisher with ID {request.Id}"));
+
         var protoPublisher = ProtoDbEntityConverter.DbToProtoPublisher(dbPublisher);
 
-        return Task.FromResult(protoPublisher);
+        var protoReply = new RequestReply()
+        {
+            Status = RequestStatus.Found,
+            Publisher = protoPublisher
+        };
+
+        return Task.FromResult(protoReply);
     }
 
     [Authorize]
-    public override Task<SingleBook> GetSingleBook(SingleBookRequest request, ServerCallContext context)
+    public override Task<RequestReply> GetSingleBook(SingleBookRequest request, ServerCallContext context)
     {
         var dbBook = _bookxContext.Find<Book>(request.Isbn);
+
+        if (dbBook == null)
+            return Task.FromResult(CreateNotFoundReply($"Couldn't find any book with ISBN {request.Isbn}"));
+
         var protoBook = ProtoDbEntityConverter.DbToProtoBook(dbBook);
 
-        return Task.FromResult(protoBook);
+        var protoReply = new RequestReply()
+        {
+            Status = RequestStatus.Found,
+            Book = protoBook
+        };
+
+        return Task.FromResult(protoReply);
+    }
+
+    #endregion
+
+    #region Methods
+
+    private RequestReply CreateNotFoundReply(string messageText)
+    {
+        return new RequestReply()
+        {
+            Status = RequestStatus.NotFound,
+            MessageText = messageText,
+            Null = new Empty()
+        };
     }
 
     #endregion
