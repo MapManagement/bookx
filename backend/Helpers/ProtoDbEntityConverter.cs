@@ -79,14 +79,13 @@ public static class ProtoDbEntityConverter
         return protoBook;
     }
 
-    public static SingleOwnedBook DbToProtoOwnedBook(OwnedBook dbOwnedBook)
+    public static ReadSingleOwnedBook DbToProtoOwnedBook(OwnedBook dbOwnedBook)
     {
         var protoBook = DbToProtoBook(dbOwnedBook.Book);
 
-        var protoOwnedBook = new SingleOwnedBook()
+        var protoOwnedBook = new ReadSingleOwnedBook()
         {
             Id = dbOwnedBook.Id,
-            UserId = dbOwnedBook.UserId,
             Book = protoBook,
             Rating = dbOwnedBook.Rating,
             Comment = dbOwnedBook.Comment,

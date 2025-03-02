@@ -22,13 +22,13 @@ insert into public."Authors" values (4, 'Patrick', 'Süskind', '1949-03-26 00:00
 
 --- Books ---
 insert into public."Books" values
-    ('9781447289463', 'Blood Meridian', 'my-path', 368, 'my-link', 'my-blurb', '2015-08-13 00:00:00-00', 2, 4);
+    ('9781447289463', 'Blood Meridian', 'my-path', 368, 'my-link', 'my-blurb', 2, 4, '2015-08-13 00:00:00-00');
 insert into public."Books" values
-    ('9783426554791', 'Der Seelenbrecher', 'my-path', 368, 'my-link', 'my-blurb', '2010-04-22 00:00:00-00', 1, 2);
+    ('9783426554791', 'Der Seelenbrecher', 'my-path', 368, 'my-link', 'my-blurb', 1, 2, '2010-04-22 00:00:00-00');
 insert into public."Books" values
-    ('9783257601756', 'Das Parfum', 'my-path', 336, 'my-link', 'my-blurb', '2012-09-25 00:00:00-00', 1, 3);
+    ('9783257601756', 'Das Parfum', 'my-path', 336, 'my-link', 'my-blurb', 1, 3, '2012-09-25 00:00:00-00');
 insert into public."Books" values
-    ('9780141036144', '1984', 'my-path', 336, 'my-link', 'my-blurb', '2008-07-23 00:00:00-00', 2, 1);
+    ('9780141036144', '1984', 'my-path', 336, 'my-link', 'my-blurb', 2, 1, '2008-07-23 00:00:00-00');
 
 --- AuthorBook ---
 insert into public."AuthorBook" values(1, '9781447289463');
@@ -41,3 +41,5 @@ insert into public."BookGenre" values('9781447289463', 4);
 insert into public."BookGenre" values('9783426554791', 1);
 insert into public."BookGenre" values('9783257601756', 2);
 insert into public."BookGenre" values('9780141036144', 3);
+
+commit;
