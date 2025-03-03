@@ -115,9 +115,13 @@ namespace Bookx.Models
                 .HasMany(u => u.Books)
                 .WithMany(b => b.Users)
                 .UsingEntity<OwnedBook>(
-                    u => u.HasOne<Book>().WithMany(b => b.Owners).HasForeignKey(o => o.BookIsbn),
-                    b => b.HasOne<User>().WithMany(u => u.OwnedBooks).HasForeignKey(o => o.UserId)
+                    u => u.HasOne(o => o.Book).WithMany(b => b.Owners).HasForeignKey(o => o.BookIsbn),
+                    b => b.HasOne(o => o.User).WithMany(u => u.OwnedBooks).HasForeignKey(o => o.UserId),
+                    o => o.HasKey(o => new { o.UserId, o.BookIsbn })
                 );
+
+            modelBuilder.Entity<OwnedBook>()
+                .HasKey(o => new { o.UserId, o.BookIsbn });
 
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Tags)

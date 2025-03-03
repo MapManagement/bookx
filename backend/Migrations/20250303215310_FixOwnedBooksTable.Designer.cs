@@ -3,6 +3,7 @@ using System;
 using Bookx.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookxBackend.Migrations
 {
     [DbContext(typeof(BookxContext))]
-    partial class BookxContextModelSnapshot : ModelSnapshot
+    [Migration("20250303215310_FixOwnedBooksTable")]
+    partial class FixOwnedBooksTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -146,30 +149,45 @@ namespace BookxBackend.Migrations
 
             modelBuilder.Entity("Bookx.Models.OwnedBook", b =>
                 {
-                    b.Property<int>("UserId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    b.Property<string>("BookIsbn")
-                        .HasColumnType("text");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("AddedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("BookIsbn")
+                        .HasColumnType("text");
+
+                    b.Property<string>("BookIsbn1")
+                        .HasColumnType("text");
+
                     b.Property<string>("Comment")
                         .HasColumnType("text");
 
-                    b.Property<int>("Id")
+                    b.Property<int>("Rating")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Rating")
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("UserId1")
                         .HasColumnType("integer");
 
                     b.Property<bool>("WouldRecommend")
                         .HasColumnType("boolean");
 
-                    b.HasKey("UserId", "BookIsbn");
+                    b.HasKey("Id");
 
                     b.HasIndex("BookIsbn");
+
+                    b.HasIndex("BookIsbn1");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
 
                     b.ToTable("OwnedBooks");
                 });
@@ -296,17 +314,23 @@ namespace BookxBackend.Migrations
 
             modelBuilder.Entity("Bookx.Models.OwnedBook", b =>
                 {
-                    b.HasOne("Bookx.Models.Book", "Book")
+                    b.HasOne("Bookx.Models.Book", null)
                         .WithMany("Owners")
-                        .HasForeignKey("BookIsbn")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("BookIsbn");
 
-                    b.HasOne("Bookx.Models.User", "User")
+                    b.HasOne("Bookx.Models.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookIsbn1");
+
+                    b.HasOne("Bookx.Models.User", null)
                         .WithMany("OwnedBooks")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Bookx.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId1");
 
                     b.Navigation("Book");
 
