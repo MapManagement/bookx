@@ -69,7 +69,6 @@ public static class CryptographyHelper
         };
 
         var credentials = new SigningCredentials(JwtSecurityKey, _jwtSecurityAlgorithm);
-        // TODO: read domain form env var?
         var jwt = new JwtSecurityToken(
                 issuer: _jwtIssuerDomain,
                 claims: claims,

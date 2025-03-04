@@ -3,6 +3,7 @@ using Bookx.Models;
 using Bookx.Helpers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 ValidateLifetime = true,
                 IssuerSigningKey = CryptographyHelper.JwtSecurityKey
             };
+        options.MapInboundClaims = false;
     });
 
 builder.Services.AddAuthorization();
@@ -32,6 +34,7 @@ var app = builder.Build();
 // TODO: in production?
 app.MapGrpcReflectionService();
 
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -5,6 +5,7 @@ using Bookx.Helpers;
 using Bookx.ProtoServices;
 using Microsoft.AspNetCore.Authorization;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace Bookx.Services;
 
@@ -83,12 +84,14 @@ public class UserRelatedService : UserService.UserServiceBase
 
     public override Task<SuccessReply> AddOwnedBook(WriteSingleOwnedBook request, ServerCallContext context)
     {
-        var httpContext = context.GetHttpContext();
-        var userIdClaim = Convert.ToInt32(
-                httpContext.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
-        );
+        var userIdClaim = context.GetHttpContext().User.FindFirst(JwtRegisteredClaimNames.Sub);
+        int userId;
+        var validUserId = Int32.TryParse(userIdClaim?.Value, out userId);
 
-        User dbUser = _bookxContext.Users.Find(userIdClaim);
+        if (userIdClaim == null || !validUserId)
+            return Task.FromResult(InvalidUserReply($"Invalid claims in JWT"));
+
+        User dbUser = _bookxContext.Users.Find(userId);
         Book book = _bookxContext.Books.Find(request.Isbn);
 
         // TODO: retrieve book from some kind of API, improve message
@@ -106,7 +109,7 @@ public class UserRelatedService : UserService.UserServiceBase
             Rating = request.Rating,
             Comment = request.Comment,
             WouldRecommend = request.WouldRecommend,
-            AddedAt = DateTime.Now
+            AddedAt = DateTime.UtcNow
         };
 
         _bookxContext.OwnedBooks.Add(newBook);
