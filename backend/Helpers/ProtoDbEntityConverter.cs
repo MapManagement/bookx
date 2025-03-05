@@ -16,7 +16,8 @@ public static class ProtoDbEntityConverter
         };
 
         if (dbAuthor.Birthdate != null)
-            protoAuthor.Birthdate = Timestamp.FromDateTime(dbAuthor.Birthdate.Value.ToDateTime(TimeOnly.MinValue));
+            protoAuthor.Birthdate = Timestamp
+                .FromDateTime(dbAuthor.Birthdate.Value.ToDateTime(TimeOnly.MinValue).ToUniversalTime());
 
         return protoAuthor;
     }
@@ -53,7 +54,7 @@ public static class ProtoDbEntityConverter
         var protoLanguage = DbToProtoLanguage(dbBook.Language);
         var protoPublisher = DbToProtoPublisher(dbBook.Publisher);
 
-
+        // TODO: coverpath
         var protoBook = new SingleBook()
         {
             Isbn = dbBook.Isbn,
@@ -66,6 +67,11 @@ public static class ProtoDbEntityConverter
             Publisher = protoPublisher,
         };
 
+        if (dbBook.ReleaseDate != null)
+            protoBook.ReleaseDate = Timestamp
+                .FromDateTime(dbBook.ReleaseDate.ToDateTime(TimeOnly.MinValue).ToUniversalTime());
+
+        // TODO: fix genres
         foreach (var dbGenre in dbBook.Genres)
         {
             protoBook.Genres.Add(DbToProtoGenre(dbGenre));
@@ -89,8 +95,13 @@ public static class ProtoDbEntityConverter
             Book = protoBook,
             Rating = dbOwnedBook.Rating,
             Comment = dbOwnedBook.Comment,
-            WouldRecommend = dbOwnedBook.WouldRecommend
+            WouldRecommend = dbOwnedBook.WouldRecommend,
         };
+
+        if (dbOwnedBook.AddedAt != null)
+            protoOwnedBook.AddedAt = Timestamp.FromDateTime(dbOwnedBook.AddedAt);
+
+        // TODO: tags?
 
         return protoOwnedBook;
     }

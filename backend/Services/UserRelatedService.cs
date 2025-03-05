@@ -35,14 +35,37 @@ public class UserRelatedService : UserService.UserServiceBase
 
     public override Task<UserRelatedRequestReply> GetSingleOwnedBook(SingleOwnedBookRequest request, ServerCallContext context)
     {
-        var httpContext = context.GetHttpContext();
-        var userIdClaim = Convert.ToInt32(
-                httpContext.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
-        );
+        int? userId = GetUserIdFromClaim(context);
+
+        if (userId == null)
+            return Task.FromResult(CreateNotFoundReply($"Invalid claims in JWT"));
 
         OwnedBook dbOwnedBook = _bookxContext.OwnedBooks
-            .Where(ob => ob.UserId == userIdClaim && ob.Id == request.OwnedBookId)
+            .Where(ob => ob.UserId == userId && ob.Id == request.OwnedBookId)
             .FirstOrDefault();
+
+        // TODO: is there an easier way
+        _bookxContext
+            .Entry(dbOwnedBook)
+            .Reference(o => o.Book)
+            .Load();
+
+        _bookxContext.Entry(dbOwnedBook.Book)
+            .Collection(b => b.Authors)
+            .Load();
+
+        _bookxContext.Entry(dbOwnedBook.Book)
+            .Collection(b => b.Genres)
+            .Load();
+
+        _bookxContext.Entry(dbOwnedBook.Book)
+            .Reference(b => b.Publisher)
+            .Load();
+
+        _bookxContext.Entry(dbOwnedBook.Book)
+                    .Reference(b => b.Language)
+                    .Load();
+
 
         if (dbOwnedBook == null)
             return Task.FromResult(CreateNotFoundReply($"Couldn't find any owned book with ID {request.OwnedBookId}"));
@@ -84,11 +107,9 @@ public class UserRelatedService : UserService.UserServiceBase
 
     public override Task<SuccessReply> AddOwnedBook(WriteSingleOwnedBook request, ServerCallContext context)
     {
-        var userIdClaim = context.GetHttpContext().User.FindFirst(JwtRegisteredClaimNames.Sub);
-        int userId;
-        var validUserId = Int32.TryParse(userIdClaim?.Value, out userId);
+        int? userId = GetUserIdFromClaim(context);
 
-        if (userIdClaim == null || !validUserId)
+        if (userId == null)
             return Task.FromResult(InvalidUserReply($"Invalid claims in JWT"));
 
         User dbUser = _bookxContext.Users.Find(userId);
@@ -179,6 +200,19 @@ public class UserRelatedService : UserService.UserServiceBase
             Success = false,
             FailureMessage = message
         };
+    }
+
+    private int? GetUserIdFromClaim(ServerCallContext context)
+    {
+        var userIdClaim = context.GetHttpContext().User.FindFirst(JwtRegisteredClaimNames.Sub);
+
+        int userId;
+        var validUserId = Int32.TryParse(userIdClaim?.Value, out userId);
+
+        if (userIdClaim == null || !validUserId)
+            return null;
+
+        return userId;
     }
 
     #endregion
