@@ -67,9 +67,8 @@ public static class ProtoDbEntityConverter
             Publisher = protoPublisher,
         };
 
-        if (dbBook.ReleaseDate != null)
-            protoBook.ReleaseDate = Timestamp
-                .FromDateTime(dbBook.ReleaseDate.ToDateTime(TimeOnly.MinValue).ToUniversalTime());
+        protoBook.ReleaseDate = Timestamp
+            .FromDateTime(dbBook.ReleaseDate.ToDateTime(TimeOnly.MinValue).ToUniversalTime());
 
         // TODO: fix genres
         foreach (var dbGenre in dbBook.Genres)
@@ -98,8 +97,7 @@ public static class ProtoDbEntityConverter
             WouldRecommend = dbOwnedBook.WouldRecommend,
         };
 
-        if (dbOwnedBook.AddedAt != null)
-            protoOwnedBook.AddedAt = Timestamp.FromDateTime(dbOwnedBook.AddedAt);
+        protoOwnedBook.AddedAt = Timestamp.FromDateTime(dbOwnedBook.AddedAt);
 
         // TODO: tags?
 

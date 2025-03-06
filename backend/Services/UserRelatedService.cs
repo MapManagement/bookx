@@ -4,8 +4,8 @@ using Bookx.Models;
 using Bookx.Helpers;
 using Bookx.ProtoServices;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace Bookx.Services;
 
@@ -41,31 +41,15 @@ public class UserRelatedService : UserService.UserServiceBase
             return Task.FromResult(CreateNotFoundReply($"Invalid claims in JWT"));
 
         OwnedBook dbOwnedBook = _bookxContext.OwnedBooks
-            .Where(ob => ob.UserId == userId && ob.Id == request.OwnedBookId)
-            .FirstOrDefault();
-
-        // TODO: is there an easier way
-        _bookxContext
-            .Entry(dbOwnedBook)
-            .Reference(o => o.Book)
-            .Load();
-
-        _bookxContext.Entry(dbOwnedBook.Book)
-            .Collection(b => b.Authors)
-            .Load();
-
-        _bookxContext.Entry(dbOwnedBook.Book)
-            .Collection(b => b.Genres)
-            .Load();
-
-        _bookxContext.Entry(dbOwnedBook.Book)
-            .Reference(b => b.Publisher)
-            .Load();
-
-        _bookxContext.Entry(dbOwnedBook.Book)
-                    .Reference(b => b.Language)
-                    .Load();
-
+            .Include(ob => ob.Book)
+                .ThenInclude(b => b.Language)
+            .Include(ob => ob.Book)
+                .ThenInclude(b => b.Authors)
+            .Include(ob => ob.Book)
+                .ThenInclude(b => b.Genres)
+            .Include(ob => ob.Book)
+                .ThenInclude(b => b.Publisher)
+            .Single(ob => ob.UserId == userId && ob.Id == request.OwnedBookId);
 
         if (dbOwnedBook == null)
             return Task.FromResult(CreateNotFoundReply($"Couldn't find any owned book with ID {request.OwnedBookId}"));
@@ -83,7 +67,39 @@ public class UserRelatedService : UserService.UserServiceBase
 
     public override Task<UserRelatedRequestReply> GetAllOwnedBooks(Empty request, ServerCallContext context)
     {
-        return base.GetAllOwnedBooks(request, context);
+        int? userId = GetUserIdFromClaim(context);
+
+        if (userId == null)
+            return Task.FromResult(CreateNotFoundReply($"Invalid claims in JWT"));
+
+        List<OwnedBook> dbOwnedBooks = _bookxContext.OwnedBooks
+            .Include(ob => ob.Book)
+                .ThenInclude(b => b.Language)
+            .Include(ob => ob.Book)
+                .ThenInclude(b => b.Authors)
+            .Include(ob => ob.Book)
+                .ThenInclude(b => b.Genres)
+            .Include(ob => ob.Book)
+                .ThenInclude(b => b.Publisher)
+            .Where(ob => ob.UserId == userId)
+            .ToList();
+
+        var protoOwnedBooks = new ReadMultipleOwnedBooks();
+
+        foreach (OwnedBook dbOwnedBook in dbOwnedBooks)
+        {
+            ReadSingleOwnedBook protoOwnedBook = ProtoDbEntityConverter.DbToProtoOwnedBook(dbOwnedBook);
+
+            protoOwnedBooks.OwnedBooks.Add(protoOwnedBook);
+        }
+
+        var protoReply = new UserRelatedRequestReply()
+        {
+            Status = RequestStatus.Found,
+            MultipleOwnedBooks = protoOwnedBooks
+        };
+
+        return Task.FromResult(protoReply);
     }
 
     public override Task<UserRelatedRequestReply> GetSingleTag(SingleTagRequest request, ServerCallContext context)
