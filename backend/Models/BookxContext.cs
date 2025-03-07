@@ -138,6 +138,10 @@ namespace Bookx.Models
             modelBuilder.Entity<Tag>()
                 .Property(t => t.Id)
                 .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Tag>()
+                .HasIndex(t => new { t.UserId, t.Name })
+                .IsUnique();
         }
 
         #endregion

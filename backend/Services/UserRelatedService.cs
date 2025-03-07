@@ -105,12 +105,55 @@ public class UserRelatedService : UserService.UserServiceBase
 
     public override Task<UserRelatedRequestReply> GetSingleTag(SingleTagRequest request, ServerCallContext context)
     {
-        return base.GetSingleTag(request, context);
+        int? userId = GetUserIdFromClaim(context);
+
+        if (userId == null)
+            return Task.FromResult(CreateNotFoundReply($"Invalid claims in JWT"));
+
+        Tag dbTag = _bookxContext.Tags
+            .Single(t => t.UserId == userId && t.Id == request.TagId);
+
+        if (dbTag == null)
+            return Task.FromResult(CreateNotFoundReply($"Couldn't find any tag with ID {request.TagId}"));
+
+        ReadSingleTag protoTag = ProtoDbEntityConverter.DbToProtoTag(dbTag);
+
+        var protoReply = new UserRelatedRequestReply()
+        {
+            Status = RequestStatus.Found,
+            Tag = protoTag
+        };
+
+        return Task.FromResult(protoReply);
     }
 
     public override Task<UserRelatedRequestReply> GetAllUserTags(Empty request, ServerCallContext context)
     {
-        return base.GetAllUserTags(request, context);
+        int? userId = GetUserIdFromClaim(context);
+
+        if (userId == null)
+            return Task.FromResult(CreateNotFoundReply($"Invalid claims in JWT"));
+
+        List<Tag> dbTags = _bookxContext.Tags
+            .Where(t => t.UserId == userId)
+            .ToList();
+
+        var protoTags = new ReadMultipleTags();
+
+        foreach (Tag dbTag in dbTags)
+        {
+            ReadSingleTag protoTag = ProtoDbEntityConverter.DbToProtoTag(dbTag);
+
+            protoTags.UserTags.Add(protoTag);
+        }
+
+        var protoReply = new UserRelatedRequestReply()
+        {
+            Status = RequestStatus.Found,
+            MultipleTags = protoTags
+        };
+
+        return Task.FromResult(protoReply);
     }
 
     public override Task<UserRelatedRequestReply> GetOwnedBooksByTag(SingleTagRequest request, ServerCallContext context)
@@ -196,7 +239,41 @@ public class UserRelatedService : UserService.UserServiceBase
 
     public override Task<SuccessReply> AddTag(WriteSingleTag request, ServerCallContext context)
     {
-        return base.AddTag(request, context);
+        int? userId = GetUserIdFromClaim(context);
+
+        if (userId == null)
+            return Task.FromResult(InvalidUserReply($"Invalid claims in JWT"));
+
+        User dbUser = _bookxContext.Users.Find(userId);
+
+        // TODO: improve message
+        if (dbUser == null)
+            return Task.FromResult(InvalidUserReply($"Invalid user"));
+
+        bool tagNameExists = _bookxContext.Tags
+            .Any(t => t.Name.ToLower() == request.Name.ToLower() && t.UserId == userId);
+
+        if (tagNameExists)
+        {
+            return Task.FromResult(InvalidUserReply($"Tag name is already in use"));
+        }
+
+        Tag newTag = new Tag()
+        {
+            Name = request.Name,
+            Color = request.Color,
+            User = dbUser
+        };
+
+        _bookxContext.Tags.Add(newTag);
+        _bookxContext.SaveChanges();
+
+        SuccessReply reply = new SuccessReply()
+        {
+            Success = true
+        };
+
+        return Task.FromResult(reply);
     }
 
     #endregion
