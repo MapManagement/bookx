@@ -99,8 +99,21 @@ public static class ProtoDbEntityConverter
 
         protoOwnedBook.AddedAt = Timestamp.FromDateTime(dbOwnedBook.AddedAt);
 
-        // TODO: tags?
+        foreach (Tag tag in dbOwnedBook.Tags)
+        {
+            protoOwnedBook.Tags.Add(DbToProtoTag(tag));
+        }
 
         return protoOwnedBook;
+    }
+
+    public static ReadSingleTag DbToProtoTag(Tag dbTag)
+    {
+        return new ReadSingleTag()
+        {
+            Id = dbTag.Id,
+            Name = dbTag.Name,
+            Color = dbTag.Color
+        };
     }
 }

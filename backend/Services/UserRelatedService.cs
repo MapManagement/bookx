@@ -81,6 +81,7 @@ public class UserRelatedService : UserService.UserServiceBase
                 .ThenInclude(b => b.Genres)
             .Include(ob => ob.Book)
                 .ThenInclude(b => b.Publisher)
+            .Include(ob => ob.Tags)
             .Where(ob => ob.UserId == userId)
             .ToList();
 
@@ -114,7 +115,40 @@ public class UserRelatedService : UserService.UserServiceBase
 
     public override Task<UserRelatedRequestReply> GetOwnedBooksByTag(SingleTagRequest request, ServerCallContext context)
     {
-        return base.GetOwnedBooksByTag(request, context);
+        int? userId = GetUserIdFromClaim(context);
+
+        if (userId == null)
+            return Task.FromResult(CreateNotFoundReply($"Invalid claims in JWT"));
+
+        List<OwnedBook> dbOwnedBooks = _bookxContext.OwnedBooks
+            .Include(ob => ob.Book)
+                .ThenInclude(b => b.Language)
+            .Include(ob => ob.Book)
+                .ThenInclude(b => b.Authors)
+            .Include(ob => ob.Book)
+                .ThenInclude(b => b.Genres)
+            .Include(ob => ob.Book)
+                .ThenInclude(b => b.Publisher)
+            .Include(ob => ob.Tags)
+            .Where(ob => ob.UserId == userId && ob.Tags.Select(t => t.Id).Contains(request.TagId))
+            .ToList();
+
+        var protoOwnedBooks = new ReadMultipleOwnedBooks();
+
+        foreach (OwnedBook dbOwnedBook in dbOwnedBooks)
+        {
+            ReadSingleOwnedBook protoOwnedBook = ProtoDbEntityConverter.DbToProtoOwnedBook(dbOwnedBook);
+
+            protoOwnedBooks.OwnedBooks.Add(protoOwnedBook);
+        }
+
+        var protoReply = new UserRelatedRequestReply()
+        {
+            Status = RequestStatus.Found,
+            MultipleOwnedBooks = protoOwnedBooks
+        };
+
+        return Task.FromResult(protoReply);
     }
 
     #endregion

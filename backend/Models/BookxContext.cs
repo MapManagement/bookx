@@ -123,6 +123,10 @@ namespace Bookx.Models
             modelBuilder.Entity<OwnedBook>()
                 .HasKey(o => new { o.UserId, o.BookIsbn });
 
+            modelBuilder.Entity<OwnedBook>()
+                .HasMany(o => o.Tags)
+                .WithMany(t => t.OwnedBooks);
+
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Tags)
                 .WithOne(t => t.User)

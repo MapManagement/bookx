@@ -59,6 +59,7 @@ message ReadSingleOwnedBook {
   string comment = 4;
   bool would_recommend = 5;
   google.protobuf.Timestamp added_at = 6;
+  repeated ReadSingleTag tags = 7;
 }
 
 message ReadMultipleOwnedBooks { repeated ReadSingleOwnedBook OwnedBooks = 1; }

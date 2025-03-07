@@ -16,9 +16,11 @@ namespace Bookx.Models
     public class Tag
     {
         public int Id { get; set; }
+        public string Name { get; set; }
         public string Color { get; set; }
         public int UserId { get; set; }
         public User User { get; set; }
+        public ICollection<OwnedBook> OwnedBooks { get; set; } = new List<OwnedBook>();
     }
 
     public class OwnedBook
@@ -32,5 +34,6 @@ namespace Bookx.Models
         public string Comment { get; set; }
         public bool WouldRecommend { get; set; }
         public DateTime AddedAt { get; set; }
+        public ICollection<Tag> Tags { get; } = new List<Tag>();
     }
 }

@@ -80,5 +80,5 @@ message SingleBook {
   repeated SingleAuthor authors = 8;
   SingleLanguage language = 9;
   SinglePublisher publisher = 10;
-  repeated SingleGenre Genres = 11;
+  repeated SingleGenre genres = 11;
 }
