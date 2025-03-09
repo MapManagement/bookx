@@ -33,14 +33,14 @@ public class UserRelatedService : UserService.UserServiceBase
 
     #region Read Operations
 
-    public override Task<UserRelatedRequestReply> GetSingleOwnedBook(SingleOwnedBookRequest request, ServerCallContext context)
+    public override async Task<UserRelatedRequestReply> GetSingleOwnedBook(SingleOwnedBookRequest request, ServerCallContext context)
     {
         int? userId = GetUserIdFromClaim(context);
 
         if (userId == null)
-            return Task.FromResult(CreateNotFoundReply($"Invalid claims in JWT"));
+            return CreateNotFoundReply($"Invalid claims in JWT");
 
-        OwnedBook dbOwnedBook = _bookxContext.OwnedBooks
+        OwnedBook dbOwnedBook = await _bookxContext.OwnedBooks
             .Include(ob => ob.Book)
                 .ThenInclude(b => b.Language)
             .Include(ob => ob.Book)
@@ -49,10 +49,10 @@ public class UserRelatedService : UserService.UserServiceBase
                 .ThenInclude(b => b.Genres)
             .Include(ob => ob.Book)
                 .ThenInclude(b => b.Publisher)
-            .Single(ob => ob.UserId == userId && ob.Id == request.OwnedBookId);
+            .SingleAsync(ob => ob.UserId == userId && ob.Id == request.OwnedBookId);
 
         if (dbOwnedBook == null)
-            return Task.FromResult(CreateNotFoundReply($"Couldn't find any owned book with ID {request.OwnedBookId}"));
+            return CreateNotFoundReply($"Couldn't find any owned book with ID {request.OwnedBookId}");
 
         ReadSingleOwnedBook protoOwnedBook = ProtoDbEntityConverter.DbToProtoOwnedBook(dbOwnedBook);
 
@@ -62,17 +62,17 @@ public class UserRelatedService : UserService.UserServiceBase
             OwnedBook = protoOwnedBook
         };
 
-        return Task.FromResult(protoReply);
+        return protoReply;
     }
 
-    public override Task<UserRelatedRequestReply> GetAllOwnedBooks(Empty request, ServerCallContext context)
+    public override async Task<UserRelatedRequestReply> GetAllOwnedBooks(Empty request, ServerCallContext context)
     {
         int? userId = GetUserIdFromClaim(context);
 
         if (userId == null)
-            return Task.FromResult(CreateNotFoundReply($"Invalid claims in JWT"));
+            return CreateNotFoundReply($"Invalid claims in JWT");
 
-        List<OwnedBook> dbOwnedBooks = _bookxContext.OwnedBooks
+        List<OwnedBook> dbOwnedBooks = await _bookxContext.OwnedBooks
             .Include(ob => ob.Book)
                 .ThenInclude(b => b.Language)
             .Include(ob => ob.Book)
@@ -83,7 +83,7 @@ public class UserRelatedService : UserService.UserServiceBase
                 .ThenInclude(b => b.Publisher)
             .Include(ob => ob.Tags)
             .Where(ob => ob.UserId == userId)
-            .ToList();
+            .ToListAsync();
 
         var protoOwnedBooks = new ReadMultipleOwnedBooks();
 
@@ -100,21 +100,21 @@ public class UserRelatedService : UserService.UserServiceBase
             MultipleOwnedBooks = protoOwnedBooks
         };
 
-        return Task.FromResult(protoReply);
+        return protoReply;
     }
 
-    public override Task<UserRelatedRequestReply> GetSingleTag(SingleTagRequest request, ServerCallContext context)
+    public override async Task<UserRelatedRequestReply> GetSingleTag(SingleTagRequest request, ServerCallContext context)
     {
         int? userId = GetUserIdFromClaim(context);
 
         if (userId == null)
-            return Task.FromResult(CreateNotFoundReply($"Invalid claims in JWT"));
+            return CreateNotFoundReply($"Invalid claims in JWT");
 
-        Tag dbTag = _bookxContext.Tags
-            .Single(t => t.UserId == userId && t.Id == request.TagId);
+        Tag dbTag = await _bookxContext.Tags
+            .SingleAsync(t => t.UserId == userId && t.Id == request.TagId);
 
         if (dbTag == null)
-            return Task.FromResult(CreateNotFoundReply($"Couldn't find any tag with ID {request.TagId}"));
+            return CreateNotFoundReply($"Couldn't find any tag with ID {request.TagId}");
 
         ReadSingleTag protoTag = ProtoDbEntityConverter.DbToProtoTag(dbTag);
 
@@ -124,19 +124,19 @@ public class UserRelatedService : UserService.UserServiceBase
             Tag = protoTag
         };
 
-        return Task.FromResult(protoReply);
+        return protoReply;
     }
 
-    public override Task<UserRelatedRequestReply> GetAllUserTags(Empty request, ServerCallContext context)
+    public override async Task<UserRelatedRequestReply> GetAllUserTags(Empty request, ServerCallContext context)
     {
         int? userId = GetUserIdFromClaim(context);
 
         if (userId == null)
-            return Task.FromResult(CreateNotFoundReply($"Invalid claims in JWT"));
+            return CreateNotFoundReply($"Invalid claims in JWT");
 
-        List<Tag> dbTags = _bookxContext.Tags
+        List<Tag> dbTags = await _bookxContext.Tags
             .Where(t => t.UserId == userId)
-            .ToList();
+            .ToListAsync();
 
         var protoTags = new ReadMultipleTags();
 
@@ -153,17 +153,17 @@ public class UserRelatedService : UserService.UserServiceBase
             MultipleTags = protoTags
         };
 
-        return Task.FromResult(protoReply);
+        return protoReply;
     }
 
-    public override Task<UserRelatedRequestReply> GetOwnedBooksByTag(SingleTagRequest request, ServerCallContext context)
+    public override async Task<UserRelatedRequestReply> GetOwnedBooksByTag(SingleTagRequest request, ServerCallContext context)
     {
         int? userId = GetUserIdFromClaim(context);
 
         if (userId == null)
-            return Task.FromResult(CreateNotFoundReply($"Invalid claims in JWT"));
+            return CreateNotFoundReply($"Invalid claims in JWT");
 
-        List<OwnedBook> dbOwnedBooks = _bookxContext.OwnedBooks
+        List<OwnedBook> dbOwnedBooks = await _bookxContext.OwnedBooks
             .Include(ob => ob.Book)
                 .ThenInclude(b => b.Language)
             .Include(ob => ob.Book)
@@ -174,7 +174,7 @@ public class UserRelatedService : UserService.UserServiceBase
                 .ThenInclude(b => b.Publisher)
             .Include(ob => ob.Tags)
             .Where(ob => ob.UserId == userId && ob.Tags.Select(t => t.Id).Contains(request.TagId))
-            .ToList();
+            .ToListAsync();
 
         var protoOwnedBooks = new ReadMultipleOwnedBooks();
 
@@ -191,30 +191,30 @@ public class UserRelatedService : UserService.UserServiceBase
             MultipleOwnedBooks = protoOwnedBooks
         };
 
-        return Task.FromResult(protoReply);
+        return protoReply;
     }
 
     #endregion
 
     #region Create Operations
 
-    public override Task<SuccessReply> AddOwnedBook(WriteSingleOwnedBook request, ServerCallContext context)
+    public override async Task<SuccessReply> AddOwnedBook(WriteSingleOwnedBook request, ServerCallContext context)
     {
         int? userId = GetUserIdFromClaim(context);
 
         if (userId == null)
-            return Task.FromResult(InvalidUserReply($"Invalid claims in JWT"));
+            return InvalidUserReply($"Invalid claims in JWT");
 
-        User dbUser = _bookxContext.Users.Find(userId);
-        Book book = _bookxContext.Books.Find(request.Isbn);
+        User dbUser = await _bookxContext.Users.FindAsync(userId);
+        Book book = await _bookxContext.Books.FindAsync(request.Isbn);
 
         // TODO: retrieve book from some kind of API, improve message
         if (book == null)
-            return Task.FromResult(InvalidUserReply($"Invalid book"));
+            return InvalidUserReply($"Invalid book");
 
         // TODO: improve message
         if (dbUser == null)
-            return Task.FromResult(InvalidUserReply($"Invalid user"));
+            return InvalidUserReply($"Invalid user");
 
         OwnedBook newBook = new OwnedBook()
         {
@@ -227,35 +227,35 @@ public class UserRelatedService : UserService.UserServiceBase
         };
 
         _bookxContext.OwnedBooks.Add(newBook);
-        _bookxContext.SaveChanges();
+        await _bookxContext.SaveChangesAsync();
 
         SuccessReply reply = new SuccessReply()
         {
             Success = true
         };
 
-        return Task.FromResult(reply);
+        return reply;
     }
 
-    public override Task<SuccessReply> AddTag(WriteSingleTag request, ServerCallContext context)
+    public override async Task<SuccessReply> AddTag(WriteSingleTag request, ServerCallContext context)
     {
         int? userId = GetUserIdFromClaim(context);
 
         if (userId == null)
-            return Task.FromResult(InvalidUserReply($"Invalid claims in JWT"));
+            return InvalidUserReply($"Invalid claims in JWT");
 
         User dbUser = _bookxContext.Users.Find(userId);
 
         // TODO: improve message
         if (dbUser == null)
-            return Task.FromResult(InvalidUserReply($"Invalid user"));
+            return InvalidUserReply($"Invalid user");
 
-        bool tagNameExists = _bookxContext.Tags
-            .Any(t => t.Name.ToLower() == request.Name.ToLower() && t.UserId == userId);
+        bool tagNameExists = await _bookxContext.Tags
+            .AnyAsync(t => t.Name.ToLower() == request.Name.ToLower() && t.UserId == userId);
 
         if (tagNameExists)
         {
-            return Task.FromResult(InvalidUserReply($"Tag name is already in use"));
+            return InvalidUserReply($"Tag name is already in use");
         }
 
         Tag newTag = new Tag()
@@ -266,14 +266,14 @@ public class UserRelatedService : UserService.UserServiceBase
         };
 
         _bookxContext.Tags.Add(newTag);
-        _bookxContext.SaveChanges();
+        await _bookxContext.SaveChangesAsync();
 
         SuccessReply reply = new SuccessReply()
         {
             Success = true
         };
 
-        return Task.FromResult(reply);
+        return reply;
     }
 
     #endregion

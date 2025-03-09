@@ -18,9 +18,7 @@ public class AuthenticationService : Authenticator.AuthenticatorBase
 
     public override Task<LoginReply> Login(LoginRequest request, ServerCallContext context)
     {
-        var loginUser = _bookxContext.Users
-            .Where(u => u.Username == request.Username)
-            .FirstOrDefault();
+        var loginUser = _bookxContext.Users.FirstOrDefault(u => u.Username == request.Username);
 
         var loginReply = new LoginReply()
         {
@@ -54,7 +52,7 @@ public class AuthenticationService : Authenticator.AuthenticatorBase
         return Task.FromResult(loginReply);
     }
 
-    public override Task<RegisterReply> Register(RegisterRequest request, ServerCallContext context)
+    public override async Task<RegisterReply> Register(RegisterRequest request, ServerCallContext context)
     {
         var registerReply = new RegisterReply()
         {
@@ -65,7 +63,7 @@ public class AuthenticationService : Authenticator.AuthenticatorBase
         if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password) || string.IsNullOrEmpty(request.MailAddress))
         {
             registerReply.FailureMessage = "All fields are required.";
-            return Task.FromResult(registerReply);
+            return registerReply;
         }
 
         var usernameAlreadyTaken = _bookxContext.Users
@@ -79,13 +77,13 @@ public class AuthenticationService : Authenticator.AuthenticatorBase
         if (usernameAlreadyTaken)
         {
             registerReply.FailureMessage = "The username is not available.";
-            return Task.FromResult(registerReply);
+            return registerReply;
         }
 
         if (emailAddressAlreadyTaken)
         {
             registerReply.FailureMessage = "This mail address has already been registered.";
-            return Task.FromResult(registerReply);
+            return registerReply;
         }
 
         (string passwordHash, string passwordSalt) = CryptographyHelper.CreatePasswordHash(request.Password);
@@ -100,13 +98,13 @@ public class AuthenticationService : Authenticator.AuthenticatorBase
         };
 
         _bookxContext.Users.Add(newUser);
-        _bookxContext.SaveChanges();
+        await _bookxContext.SaveChangesAsync();
 
         var jwt = CryptographyHelper.GenerateJwt(newUser.Id, newUser.MailAddress);
 
         registerReply.ValidRegistration = true;
         registerReply.Token = jwt;
 
-        return Task.FromResult(registerReply);
+        return registerReply;
     }
 }

@@ -28,12 +28,12 @@ public class BookRelatedService : BookService.BookServiceBase
     #region Overrides
 
     [Authorize]
-    public override Task<BookRelatedRequestReply> GetSingleAuthor(SingleAuthorRequest request, ServerCallContext context)
+    public override async Task<BookRelatedRequestReply> GetSingleAuthor(SingleAuthorRequest request, ServerCallContext context)
     {
-        var dbAuthor = _bookxContext.Find<Author>(request.Id);
+        var dbAuthor = await _bookxContext.FindAsync<Author>(request.Id);
 
         if (dbAuthor == null)
-            return Task.FromResult(CreateNotFoundReply($"Couldn't find any author with ID {request.Id}"));
+            return CreateNotFoundReply($"Couldn't find any author with ID {request.Id}");
 
         var protoAuthor = ProtoDbEntityConverter.DbToProtoAuthor(dbAuthor);
 
@@ -43,16 +43,16 @@ public class BookRelatedService : BookService.BookServiceBase
             Author = protoAuthor
         };
 
-        return Task.FromResult(protoReply);
+        return protoReply;
     }
 
     [Authorize]
-    public override Task<BookRelatedRequestReply> GetSingleGenre(SingleGenreRequest request, ServerCallContext context)
+    public override async Task<BookRelatedRequestReply> GetSingleGenre(SingleGenreRequest request, ServerCallContext context)
     {
-        var dbGenre = _bookxContext.Find<Genre>(request.Id);
+        var dbGenre = await _bookxContext.FindAsync<Genre>(request.Id);
 
         if (dbGenre == null)
-            return Task.FromResult(CreateNotFoundReply($"Couldn't find any genre with ID {request.Id}"));
+            return CreateNotFoundReply($"Couldn't find any genre with ID {request.Id}");
 
         var protoGenre = ProtoDbEntityConverter.DbToProtoGenre(dbGenre);
 
@@ -62,16 +62,16 @@ public class BookRelatedService : BookService.BookServiceBase
             Genre = protoGenre
         };
 
-        return Task.FromResult(protoReply);
+        return protoReply;
     }
 
     [Authorize]
-    public override Task<BookRelatedRequestReply> GetSingleLanguage(SingleLanguageRequest request, ServerCallContext context)
+    public override async Task<BookRelatedRequestReply> GetSingleLanguage(SingleLanguageRequest request, ServerCallContext context)
     {
-        var dbLanguage = _bookxContext.Find<Language>(request.Id);
+        var dbLanguage = await _bookxContext.FindAsync<Language>(request.Id);
 
         if (dbLanguage == null)
-            return Task.FromResult(CreateNotFoundReply($"Couldn't find any language with ID {request.Id}"));
+            return CreateNotFoundReply($"Couldn't find any language with ID {request.Id}");
 
         var protoLanguage = ProtoDbEntityConverter.DbToProtoLanguage(dbLanguage);
 
@@ -81,16 +81,16 @@ public class BookRelatedService : BookService.BookServiceBase
             Language = protoLanguage
         };
 
-        return Task.FromResult(protoReply);
+        return protoReply;
     }
 
     [Authorize]
-    public override Task<BookRelatedRequestReply> GetSinglePublisher(SinglePublisherRequest request, ServerCallContext context)
+    public override async Task<BookRelatedRequestReply> GetSinglePublisher(SinglePublisherRequest request, ServerCallContext context)
     {
-        var dbPublisher = _bookxContext.Find<Publisher>(request.Id);
+        var dbPublisher = await _bookxContext.FindAsync<Publisher>(request.Id);
 
         if (dbPublisher == null)
-            return Task.FromResult(CreateNotFoundReply($"Couldn't find any publisher with ID {request.Id}"));
+            return CreateNotFoundReply($"Couldn't find any publisher with ID {request.Id}");
 
         var protoPublisher = ProtoDbEntityConverter.DbToProtoPublisher(dbPublisher);
 
@@ -100,16 +100,16 @@ public class BookRelatedService : BookService.BookServiceBase
             Publisher = protoPublisher
         };
 
-        return Task.FromResult(protoReply);
+        return protoReply;
     }
 
     [Authorize]
-    public override Task<BookRelatedRequestReply> GetSingleBook(SingleBookRequest request, ServerCallContext context)
+    public override async Task<BookRelatedRequestReply> GetSingleBook(SingleBookRequest request, ServerCallContext context)
     {
-        var dbBook = _bookxContext.Find<Book>(request.Isbn);
+        var dbBook = await _bookxContext.FindAsync<Book>(request.Isbn);
 
         if (dbBook == null)
-            return Task.FromResult(CreateNotFoundReply($"Couldn't find any book with ISBN {request.Isbn}"));
+            return CreateNotFoundReply($"Couldn't find any book with ISBN {request.Isbn}");
 
         var protoBook = ProtoDbEntityConverter.DbToProtoBook(dbBook);
 
@@ -119,7 +119,7 @@ public class BookRelatedService : BookService.BookServiceBase
             Book = protoBook
         };
 
-        return Task.FromResult(protoReply);
+        return protoReply;
     }
 
     #endregion
