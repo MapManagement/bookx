@@ -198,7 +198,7 @@ public class UserRelatedService : UserService.UserServiceBase
 
     #region Create Operations
 
-    public override async Task<SuccessReply> AddOwnedBook(WriteSingleOwnedBook request, ServerCallContext context)
+    public override async Task<SuccessReply> AddOwnedBook(AddSingleOwnedBook request, ServerCallContext context)
     {
         int? userId = GetUserIdFromClaim(context);
 
@@ -237,7 +237,7 @@ public class UserRelatedService : UserService.UserServiceBase
         return reply;
     }
 
-    public override async Task<SuccessReply> AddTag(WriteSingleTag request, ServerCallContext context)
+    public override async Task<SuccessReply> AddTag(AddSingleTag request, ServerCallContext context)
     {
         int? userId = GetUserIdFromClaim(context);
 
@@ -280,28 +280,129 @@ public class UserRelatedService : UserService.UserServiceBase
 
     #region Delete Operations
 
-    public override Task<SuccessReply> RemoveOwnedBook(SingleOwnedBookRequest request, ServerCallContext context)
+    public override async Task<SuccessReply> RemoveOwnedBook(SingleOwnedBookRequest request, ServerCallContext context)
     {
-        return base.RemoveOwnedBook(request, context);
+        int? userId = GetUserIdFromClaim(context);
+
+        if (userId == null)
+            return InvalidUserReply($"Invalid claims in JWT");
+
+        User dbUser = await _bookxContext.Users.FindAsync(userId);
+        OwnedBook ownedBook = await _bookxContext.OwnedBooks
+            .SingleOrDefaultAsync(ob => ob.Id == request.OwnedBookId && ob.UserId == userId);
+
+        if (ownedBook == null)
+            return InvalidUserReply($"Couldn't find any owned book with ID {request.OwnedBookId}");
+
+        // TODO: improve message
+        if (dbUser == null)
+            return InvalidUserReply($"Invalid user");
+
+        _bookxContext.OwnedBooks.Remove(ownedBook);
+        await _bookxContext.SaveChangesAsync();
+
+        SuccessReply reply = new SuccessReply()
+        {
+            Success = true
+        };
+
+        return reply;
     }
 
-    public override Task<SuccessReply> RemoveTag(SingleTagRequest request, ServerCallContext context)
+    public override async Task<SuccessReply> RemoveTag(SingleTagRequest request, ServerCallContext context)
     {
-        return base.RemoveTag(request, context);
+        int? userId = GetUserIdFromClaim(context);
+
+        if (userId == null)
+            return InvalidUserReply($"Invalid claims in JWT");
+
+        User dbUser = await _bookxContext.Users.FindAsync(userId);
+        Tag tag = await _bookxContext.Tags
+            .SingleOrDefaultAsync(t => t.Id == request.TagId && t.UserId == userId);
+
+        if (tag == null)
+            return InvalidUserReply($"Couldn't find any tag with ID {request.TagId}");
+
+        // TODO: improve message
+        if (dbUser == null)
+            return InvalidUserReply($"Invalid user");
+
+        _bookxContext.Tags.Remove(tag);
+        await _bookxContext.SaveChangesAsync();
+
+        SuccessReply reply = new SuccessReply()
+        {
+            Success = true
+        };
+
+        return reply;
     }
 
     #endregion
 
     #region Update Operations
 
-    public override Task<SuccessReply> EditOwnedBook(WriteSingleOwnedBook request, ServerCallContext context)
+    public override async Task<SuccessReply> EditOwnedBook(EditSingleOwnedBook request, ServerCallContext context)
     {
-        return base.EditOwnedBook(request, context);
+        int? userId = GetUserIdFromClaim(context);
+
+        if (userId == null)
+            return InvalidUserReply($"Invalid claims in JWT");
+
+        User dbUser = await _bookxContext.Users.FindAsync(userId);
+        OwnedBook ownedBook = await _bookxContext.OwnedBooks
+            .SingleOrDefaultAsync(ob => ob.Id == request.Id && ob.UserId == userId);
+
+        if (ownedBook == null)
+            return InvalidUserReply($"Couldn't find any owned book with ID {request.Id}");
+
+        // TODO: improve message
+        if (dbUser == null)
+            return InvalidUserReply($"Invalid user");
+
+        ownedBook.Rating = request.Rating;
+        ownedBook.Comment = request.Comment;
+        ownedBook.WouldRecommend = request.WouldRecommend;
+
+        await _bookxContext.SaveChangesAsync();
+
+        SuccessReply reply = new SuccessReply()
+        {
+            Success = true
+        };
+
+        return reply;
     }
 
-    public override Task<SuccessReply> EditTag(WriteSingleTag request, ServerCallContext context)
+    public override async Task<SuccessReply> EditTag(EditSingleTag request, ServerCallContext context)
     {
-        return base.EditTag(request, context);
+        int? userId = GetUserIdFromClaim(context);
+
+        if (userId == null)
+            return InvalidUserReply($"Invalid claims in JWT");
+
+        User dbUser = await _bookxContext.Users.FindAsync(userId);
+        Tag tag = await _bookxContext.Tags
+            .SingleOrDefaultAsync(t => t.Id == request.Id && t.UserId == userId);
+
+        if (tag == null)
+            return InvalidUserReply($"Couldn't find any tag with ID {request.Id}");
+
+        // TODO: improve message
+        if (dbUser == null)
+            return InvalidUserReply($"Invalid user");
+
+        tag.Name = request.Name;
+        tag.Color = request.Color;
+
+        await _bookxContext.SaveChangesAsync();
+
+        SuccessReply reply = new SuccessReply()
+        {
+            Success = true
+        };
+
+        return reply;
     }
 
     #endregion
