@@ -4,13 +4,6 @@ namespace Bookx.Models
 {
     public class BookxContext : DbContext
     {
-        #region Fields
-
-        private const string EnvDbConnectionString = "DB_CONNECTION_STRING";
-        private readonly string _dbConnectionString;
-
-        #endregion
-
         #region Properties
 
         // book related
@@ -31,17 +24,11 @@ namespace Bookx.Models
 
         public BookxContext()
         {
-            _dbConnectionString = Environment.GetEnvironmentVariable(EnvDbConnectionString);
         }
 
         #endregion
 
         #region Overrides
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseNpgsql(_dbConnectionString);
-        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
