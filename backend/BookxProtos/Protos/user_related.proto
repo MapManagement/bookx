@@ -4,7 +4,7 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "book_related.proto";
 
-option csharp_namespace = "Bookx.ProtoServices";
+option csharp_namespace = "BookxProtos";
 
 package user_related;
 

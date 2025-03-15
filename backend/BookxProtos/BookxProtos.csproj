@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+    </PropertyGroup>
+
+
+    <ItemGroup>
+        <Protobuf Include="Protos/book_related.proto" GrpcServices="Both" ProtoRoot="Protos/" />
+        <Protobuf Include="Protos/user_related.proto" GrpcServices="Both" ProtoRoot="Protos/" />
+        <Protobuf Include="Protos/authentication.proto" GrpcServices="Both" ProtoRoot="Protos/" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Google.Protobuf" Version="3.18.0" />
+        <PackageReference Include="Grpc.Net.Client" Version="2.52.0" />
+        <PackageReference Include="Grpc.Tools" Version="2.40.0">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+
+    </ItemGroup>
+
+</Project>

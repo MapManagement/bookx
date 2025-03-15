@@ -1,5 +1,5 @@
 using Bookx.Models;
-using Bookx.ProtoServices;
+using BookxProtos;
 using Google.Protobuf.WellKnownTypes;
 
 namespace Bookx.Helpers;

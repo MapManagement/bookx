@@ -7,12 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Protobuf Include="Protos/book_related.proto" GrpcServices="Server" ProtoRoot="Protos/" />
-        <Protobuf Include="Protos/user_related.proto" GrpcServices="Server" ProtoRoot="Protos/" />
-        <Protobuf Include="Protos/authentication.proto" GrpcServices="Server" ProtoRoot="Protos/" />
-    </ItemGroup>
-
-    <ItemGroup>
         <PackageReference Include="Grpc.AspNetCore" Version="2.64.0" />
         <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.67.0" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.2" />
@@ -21,6 +15,10 @@
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\BookxProtos\BookxProtos.csproj" />
     </ItemGroup>
 
 </Project>

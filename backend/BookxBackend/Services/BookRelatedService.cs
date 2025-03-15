@@ -2,7 +2,7 @@ using Grpc.Core;
 using Google.Protobuf.WellKnownTypes;
 using Bookx.Models;
 using Bookx.Helpers;
-using Bookx.ProtoServices;
+using BookxProtos;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Bookx.Services;

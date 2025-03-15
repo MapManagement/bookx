@@ -1,7 +1,7 @@
 using Grpc.Core;
 using Bookx.Models;
 using Bookx.Helpers;
-using Bookx.ProtoServices;
+using BookxProtos;
 
 namespace Bookx.Services;
 

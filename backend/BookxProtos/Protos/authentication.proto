@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "Bookx.ProtoServices";
+option csharp_namespace = "BookxProtos";
 
 package authentication;
 
