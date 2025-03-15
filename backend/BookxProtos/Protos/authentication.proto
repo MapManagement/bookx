@@ -17,7 +17,7 @@ message LoginRequest {
 
 message LoginReply {
   bool ValidLogin = 1;
-  string Token = 2;
+  optional string Token = 2;
   optional string FailureMessage = 3;
 }
 
@@ -29,6 +29,6 @@ message RegisterRequest {
 
 message RegisterReply {
   bool ValidRegistration = 1;
-  string Token = 2;
+  optional string Token = 2;
   optional string FailureMessage = 3;
 }

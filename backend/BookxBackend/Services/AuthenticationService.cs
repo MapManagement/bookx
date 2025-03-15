@@ -23,7 +23,6 @@ public class AuthenticationService : Authenticator.AuthenticatorBase
         var loginReply = new LoginReply()
         {
             ValidLogin = false,
-            Token = string.Empty
         };
 
         if (loginUser == null || string.IsNullOrWhiteSpace(request.Username))
@@ -57,7 +56,6 @@ public class AuthenticationService : Authenticator.AuthenticatorBase
         var registerReply = new RegisterReply()
         {
             ValidRegistration = false,
-            Token = string.Empty
         };
 
         if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password) || string.IsNullOrEmpty(request.MailAddress))
