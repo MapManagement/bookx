@@ -1,33 +1,57 @@
 using Bookx.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace BookxBackendTests.Factories
 {
     public class BookxBackendFactory : WebApplicationFactory<Program>
     {
+        #region Fields
+
+        // database is released from memory as soon as the last connection
+        // has been terminated, so keep one in a private field for testing
+        private SqliteConnection _dbConnection;
+
+        #endregion
+
+        #region Overrides
+
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            builder.ConfigureServices(services =>
+            builder.ConfigureTestServices(services =>
             {
-                var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<BookxContext>)
-                );
+                services.RemoveAll<DbContextOptions>();
+                services.RemoveAll<BookxContext>();
+                services.RemoveAll<IDbContextOptionsConfiguration<BookxContext>>();
 
-                if (descriptor != null)
-                {
-                    services.Remove(descriptor);
-                }
+                _dbConnection = new SqliteConnection("DataSource=:memory:");
+                _dbConnection.Open();
 
                 services.AddDbContext<BookxContext>(options =>
                 {
-                    options.UseInMemoryDatabase("InMemoryBookxTestDb");
+                    options.UseSqlite(_dbConnection);
                 });
 
                 services.AddGrpcReflection();
             });
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (disposing)
+            {
+                _dbConnection.Dispose();
+            }
+        }
+
+        #endregion
     }
 }

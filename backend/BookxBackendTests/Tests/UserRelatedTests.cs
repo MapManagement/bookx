@@ -1,6 +1,5 @@
 using BookxBackendTests.Fixtures;
 using BookxProtos;
-using Xunit;
 
 namespace BookxBackendTests.Tests
 {

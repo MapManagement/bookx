@@ -22,7 +22,7 @@ namespace Bookx.Models
 
         #region Constructor
 
-        public BookxContext()
+        public BookxContext(DbContextOptions<BookxContext> options) : base(options)
         {
         }
 

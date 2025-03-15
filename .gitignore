@@ -136,3 +136,6 @@ _NCrunch*
 launchSettings.json
 *appsettings*.json
 
+# Environment Variables
+*.env
+
