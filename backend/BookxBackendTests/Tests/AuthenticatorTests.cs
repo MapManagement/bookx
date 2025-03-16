@@ -7,23 +7,42 @@ namespace BookxBackendTests.Tests
     {
         private readonly BookxBackendTestFixture _fixture;
         private readonly Authenticator.AuthenticatorClient _authenticatorGrpcClient;
-        private readonly UserService.UserServiceClient _userRelatedGrcpClient;
 
         public AuthenticatorTests(BookxBackendTestFixture fixture)
         {
             _fixture = fixture;
             _authenticatorGrpcClient = new Authenticator.AuthenticatorClient(_fixture.GrpcChannel);
-            _userRelatedGrcpClient = new UserService.UserServiceClient(_fixture.GrpcChannel);
         }
 
-        [Fact]
-        public async Task SuccessfulRegister()
+        #region Methods
+
+        private async Task<RegisterReply> RegisterNewUser(string username, string password, string mailAddress)
         {
             var registerRequest = new RegisterRequest()
             {
-                Username = "Franz",
-                Password = "Kafka",
-                MailAddress = "Franz.Kafka@mail.com"
+                Username = username,
+                Password = password,
+                MailAddress = mailAddress
+            };
+
+            return await _authenticatorGrpcClient.RegisterAsync(registerRequest);
+        }
+
+        #endregion
+
+        #region Tests
+
+        [Theory]
+        [InlineData("Herman", "Hesse", "Herman.Hesse@mail.com")]
+        [InlineData("Ernst Theodor Amadeus", "Hoffmann", "ETA.Hoffmann@mail.com")]
+        [InlineData("Friedrich", "Dürrenmatt", "Friedrich.Dürrenmatt@mail.com")]
+        public async Task SuccessfulRegister(string username, string password, string mailAddress)
+        {
+            var registerRequest = new RegisterRequest()
+            {
+                Username = username,
+                Password = password,
+                MailAddress = mailAddress
             };
 
             var registerReply = await _authenticatorGrpcClient.RegisterAsync(registerRequest);
@@ -33,14 +52,18 @@ namespace BookxBackendTests.Tests
             Assert.NotNull(registerReply.Token);
         }
 
-        [Fact]
-        public async Task EmptyUsernameRegister()
+        [Theory]
+        [InlineData("", "Brecht", "Bertolt.Brecht@mail.com")]
+        [InlineData("Patrick", "", "Patrick.Süskind@mail.com")]
+        [InlineData("Friedrich", "Schiller", "")]
+        [InlineData("", "", "")]
+        public async Task FailedRegister(string username, string password, string mailAddress)
         {
             var registerRequest = new RegisterRequest()
             {
-                Username = string.Empty,
-                Password = "Kafka",
-                MailAddress = "Franz.Kafka@mail.com"
+                Username = username,
+                Password = password,
+                MailAddress = mailAddress
             };
 
             var registerReply = await _authenticatorGrpcClient.RegisterAsync(registerRequest);
@@ -51,58 +74,48 @@ namespace BookxBackendTests.Tests
             Assert.NotNull(registerReply.FailureMessage);
         }
 
-        [Fact]
-        public async Task EmptyPasswordRegister()
+
+        [Theory]
+        [InlineData("Franz", "Kafka", "Franz.Kafka@mail.com")]
+        public async Task SuccessfulLogin(string username, string password, string mailAddress)
         {
-            var registerRequest = new RegisterRequest()
+            var registerReply = await RegisterNewUser(username, password, mailAddress);
+
+            Assert.True(registerReply.ValidRegistration);
+
+            var loginRequest = new LoginRequest()
             {
-                Username = "Franz",
-                Password = string.Empty,
-                MailAddress = "Franz.Kafka@mail.com"
+                Username = username,
+                Password = password
             };
 
-            var registerReply = await _authenticatorGrpcClient.RegisterAsync(registerRequest);
+            var loginReply = await _authenticatorGrpcClient.LoginAsync(loginRequest);
 
-            Assert.NotNull(registerReply);
-            Assert.False(registerReply.ValidRegistration);
-            Assert.False(registerReply.HasToken);
-            Assert.NotNull(registerReply.FailureMessage);
+            Assert.NotNull(loginReply);
+            Assert.True(loginReply.ValidLogin);
+            Assert.NotNull(loginReply.Token);
         }
 
-        [Fact]
-        public async Task EmptyMailAddressRegister()
+        [Theory]
+        [InlineData("", "Maria-Remarque")]
+        [InlineData("Erich Maria", "")]
+        [InlineData("", "")]
+        public async Task FailedLogin(string username, string password)
         {
-            var registerRequest = new RegisterRequest()
+            var loginRequest = new LoginRequest()
             {
-                Username = "Franz",
-                Password = "Kafka",
-                MailAddress = string.Empty
+                Username = username,
+                Password = password
             };
 
-            var registerReply = await _authenticatorGrpcClient.RegisterAsync(registerRequest);
+            var loginReply = await _authenticatorGrpcClient.LoginAsync(loginRequest);
 
-            Assert.NotNull(registerReply);
-            Assert.False(registerReply.ValidRegistration);
-            Assert.False(registerReply.HasToken);
-            Assert.NotNull(registerReply.FailureMessage);
+            Assert.NotNull(loginReply);
+            Assert.False(loginReply.ValidLogin);
+            Assert.False(loginReply.HasToken);
+            Assert.NotNull(loginReply.FailureMessage);
         }
 
-        [Fact]
-        public async Task EmptyRegister()
-        {
-            var registerRequest = new RegisterRequest()
-            {
-                Username = string.Empty,
-                Password = string.Empty,
-                MailAddress = string.Empty
-            };
-
-            var registerReply = await _authenticatorGrpcClient.RegisterAsync(registerRequest);
-
-            Assert.NotNull(registerReply);
-            Assert.False(registerReply.ValidRegistration);
-            Assert.False(registerReply.HasToken);
-            Assert.NotNull(registerReply.FailureMessage);
-        }
+        #endregion
     }
 }
