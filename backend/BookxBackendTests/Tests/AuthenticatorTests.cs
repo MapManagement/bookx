@@ -3,20 +3,19 @@ using BookxProtos;
 
 namespace BookxBackendTests.Tests
 {
-    public class AuthenticatorTests : IClassFixture<BookxBackendTestFixture>
+    public class AuthenticatorTests
     {
-        private readonly BookxBackendTestFixture _fixture;
-        private readonly Authenticator.AuthenticatorClient _authenticatorGrpcClient;
-
-        public AuthenticatorTests(BookxBackendTestFixture fixture)
-        {
-            _fixture = fixture;
-            _authenticatorGrpcClient = new Authenticator.AuthenticatorClient(_fixture.GrpcChannel);
-        }
-
         #region Methods
 
-        private async Task<RegisterReply> RegisterNewUser(string username, string password, string mailAddress)
+        private BookxBackendTestFixture CreateTestBackend()
+        {
+            return new BookxBackendTestFixture();
+        }
+
+        private async Task<RegisterReply> RegisterNewUser(Authenticator.AuthenticatorClient authClient,
+                                                          string username,
+                                                          string password,
+                                                          string mailAddress)
         {
             var registerRequest = new RegisterRequest()
             {
@@ -25,7 +24,7 @@ namespace BookxBackendTests.Tests
                 MailAddress = mailAddress
             };
 
-            return await _authenticatorGrpcClient.RegisterAsync(registerRequest);
+            return await authClient.RegisterAsync(registerRequest);
         }
 
         #endregion
@@ -38,18 +37,23 @@ namespace BookxBackendTests.Tests
         [InlineData("Friedrich", "Dürrenmatt", "Friedrich.Dürrenmatt@mail.com")]
         public async Task SuccessfulRegister(string username, string password, string mailAddress)
         {
-            var registerRequest = new RegisterRequest()
+            using (var backend = CreateTestBackend())
             {
-                Username = username,
-                Password = password,
-                MailAddress = mailAddress
-            };
+                var authClient = new Authenticator.AuthenticatorClient(backend.GrpcChannel);
 
-            var registerReply = await _authenticatorGrpcClient.RegisterAsync(registerRequest);
+                var registerRequest = new RegisterRequest()
+                {
+                    Username = username,
+                    Password = password,
+                    MailAddress = mailAddress
+                };
 
-            Assert.NotNull(registerReply);
-            Assert.True(registerReply.ValidRegistration);
-            Assert.NotNull(registerReply.Token);
+                var registerReply = await authClient.RegisterAsync(registerRequest);
+
+                Assert.NotNull(registerReply);
+                Assert.True(registerReply.ValidRegistration);
+                Assert.NotNull(registerReply.Token);
+            }
         }
 
         [Theory]
@@ -59,19 +63,24 @@ namespace BookxBackendTests.Tests
         [InlineData("", "", "")]
         public async Task FailedRegister(string username, string password, string mailAddress)
         {
-            var registerRequest = new RegisterRequest()
+            using (var backend = CreateTestBackend())
             {
-                Username = username,
-                Password = password,
-                MailAddress = mailAddress
-            };
+                var authClient = new Authenticator.AuthenticatorClient(backend.GrpcChannel);
 
-            var registerReply = await _authenticatorGrpcClient.RegisterAsync(registerRequest);
+                var registerRequest = new RegisterRequest()
+                {
+                    Username = username,
+                    Password = password,
+                    MailAddress = mailAddress
+                };
 
-            Assert.NotNull(registerReply);
-            Assert.False(registerReply.ValidRegistration);
-            Assert.False(registerReply.HasToken);
-            Assert.NotNull(registerReply.FailureMessage);
+                var registerReply = await authClient.RegisterAsync(registerRequest);
+
+                Assert.NotNull(registerReply);
+                Assert.False(registerReply.ValidRegistration);
+                Assert.False(registerReply.HasToken);
+                Assert.NotNull(registerReply.FailureMessage);
+            }
         }
 
 
@@ -79,21 +88,26 @@ namespace BookxBackendTests.Tests
         [InlineData("Franz", "Kafka", "Franz.Kafka@mail.com")]
         public async Task SuccessfulLogin(string username, string password, string mailAddress)
         {
-            var registerReply = await RegisterNewUser(username, password, mailAddress);
-
-            Assert.True(registerReply.ValidRegistration);
-
-            var loginRequest = new LoginRequest()
+            using (var backend = CreateTestBackend())
             {
-                Username = username,
-                Password = password
-            };
+                var authClient = new Authenticator.AuthenticatorClient(backend.GrpcChannel);
 
-            var loginReply = await _authenticatorGrpcClient.LoginAsync(loginRequest);
+                var registerReply = await RegisterNewUser(authClient, username, password, mailAddress);
 
-            Assert.NotNull(loginReply);
-            Assert.True(loginReply.ValidLogin);
-            Assert.NotNull(loginReply.Token);
+                Assert.True(registerReply.ValidRegistration);
+
+                var loginRequest = new LoginRequest()
+                {
+                    Username = username,
+                    Password = password
+                };
+
+                var loginReply = await authClient.LoginAsync(loginRequest);
+
+                Assert.NotNull(loginReply);
+                Assert.True(loginReply.ValidLogin);
+                Assert.NotNull(loginReply.Token);
+            }
         }
 
         [Theory]
@@ -102,18 +116,23 @@ namespace BookxBackendTests.Tests
         [InlineData("", "")]
         public async Task FailedLogin(string username, string password)
         {
-            var loginRequest = new LoginRequest()
+            using (var backend = CreateTestBackend())
             {
-                Username = username,
-                Password = password
-            };
+                var authClient = new Authenticator.AuthenticatorClient(backend.GrpcChannel);
 
-            var loginReply = await _authenticatorGrpcClient.LoginAsync(loginRequest);
+                var loginRequest = new LoginRequest()
+                {
+                    Username = username,
+                    Password = password
+                };
 
-            Assert.NotNull(loginReply);
-            Assert.False(loginReply.ValidLogin);
-            Assert.False(loginReply.HasToken);
-            Assert.NotNull(loginReply.FailureMessage);
+                var loginReply = await authClient.LoginAsync(loginRequest);
+
+                Assert.NotNull(loginReply);
+                Assert.False(loginReply.ValidLogin);
+                Assert.False(loginReply.HasToken);
+                Assert.NotNull(loginReply.FailureMessage);
+            }
         }
 
         #endregion

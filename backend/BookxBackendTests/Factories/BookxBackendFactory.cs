@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace BookxBackendTests.Factories
 {
-    public class BookxBackendFactory : WebApplicationFactory<Program>
+    public class BookxBackendFactory : WebApplicationFactory<Program>, IDisposable
     {
         #region Fields
 
