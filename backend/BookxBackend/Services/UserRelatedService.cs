@@ -210,7 +210,9 @@ public class UserRelatedService : UserService.UserServiceBase
 
         // TODO: retrieve book from some kind of API, improve message
         if (book == null)
-            return InvalidUserReply($"Invalid book");
+        {
+            book = await BookApiHelper.RetrieveBookByIsbn(request.Isbn);
+        }
 
         // TODO: improve message
         if (dbUser == null)

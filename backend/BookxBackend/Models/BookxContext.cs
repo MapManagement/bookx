@@ -132,5 +132,55 @@ namespace Bookx.Models
         }
 
         #endregion
+
+        #region Methods
+
+        public Author DuplicateAuthorByName(string firstName, string lastName)
+        {
+            var authors = this.Authors.Where(
+                    a => a.FirstName.ToLower() == firstName.ToLower()
+                    && a.LastName.ToLower() == lastName.ToLower()
+            );
+
+            if (authors.Any())
+                return authors.First();
+
+            return null;
+        }
+
+        public Genre DuplicateGenreByName(string genreName)
+        {
+            var genres = this.Genres
+                .Where(g => g.Name.ToLower() == genreName.ToLower());
+
+            if (genres.Any())
+                return genres.First();
+
+            return null;
+        }
+
+        public Publisher DuplicatePublisherByName(string publisherName)
+        {
+            var publishers = this.Publishers
+                            .Where(p => p.Name.ToLower() == publisherName.ToLower());
+
+            if (publishers.Any())
+                return publishers.First();
+
+            return null;
+        }
+
+        public Language DuplicateLanguageByName(string languageName)
+        {
+            var languages = this.Languages
+                .Where(l => l.Name.ToLower() == languageName.ToLower());
+
+            if (languages.Any())
+                return languages.First();
+
+            return null;
+        }
+
+        #endregion
     }
 }
