@@ -51,7 +51,8 @@ public static class BookApiHelper
 
         ConvertToDbAuthors(singleGoogleBook).ForEach(a => dbBook.Authors.Add(a));
         ConvertToDbGenres(singleGoogleBook).ForEach(g => dbBook.Genres.Add(g));
-        // TODO: Language
+        dbBook.Language = ConvertToDbLanguage(singleGoogleBook);
+        dbBook.Publisher = ConvertToDbPublisher(singleGoogleBook);
 
         return dbBook;
     }
@@ -133,5 +134,20 @@ public static class BookApiHelper
         };
 
         return dbPublisher;
+    }
+
+    private static Language ConvertToDbLanguage(BookItem googleBook)
+    {
+        if (googleBook?.VolumeInfo?.Language == null)
+            return null;
+
+        // TODO: check for existence
+
+        var dbLanguage = new Language()
+        {
+            Name = googleBook.VolumeInfo.Language
+        };
+
+        return dbLanguage;
     }
 }
