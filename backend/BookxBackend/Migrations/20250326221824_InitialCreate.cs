@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookxBackend.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -20,7 +20,7 @@ namespace BookxBackend.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     FirstName = table.Column<string>(type: "text", nullable: true),
                     LastName = table.Column<string>(type: "text", nullable: true),
-                    Birthdate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    Birthdate = table.Column<DateOnly>(type: "date", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -58,11 +58,29 @@ namespace BookxBackend.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Publishers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Username = table.Column<string>(type: "text", nullable: true),
+                    Password = table.Column<string>(type: "text", nullable: true),
+                    PasswordSalt = table.Column<string>(type: "text", nullable: true),
+                    JoinDatetime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    MailAddress = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -75,6 +93,7 @@ namespace BookxBackend.Migrations
                     NumerOfPages = table.Column<int>(type: "integer", nullable: false),
                     ShopLink = table.Column<string>(type: "text", nullable: true),
                     Blurb = table.Column<string>(type: "text", nullable: true),
+                    ReleaseDate = table.Column<DateOnly>(type: "date", nullable: false),
                     LanguageId = table.Column<int>(type: "integer", nullable: false),
                     PublisherId = table.Column<int>(type: "integer", nullable: false)
                 },
@@ -91,6 +110,27 @@ namespace BookxBackend.Migrations
                         name: "FK_Books_Publishers_PublisherId",
                         column: x => x.PublisherId,
                         principalTable: "Publishers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Tags",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: true),
+                    Color = table.Column<string>(type: "text", nullable: true),
+                    UserId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Tags", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Tags_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -143,6 +183,60 @@ namespace BookxBackend.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "OwnedBooks",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    BookIsbn = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<int>(type: "integer", nullable: false),
+                    Rating = table.Column<int>(type: "integer", nullable: false),
+                    Comment = table.Column<string>(type: "text", nullable: true),
+                    WouldRecommend = table.Column<bool>(type: "boolean", nullable: false),
+                    AddedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OwnedBooks", x => new { x.UserId, x.BookIsbn });
+                    table.ForeignKey(
+                        name: "FK_OwnedBooks_Books_BookIsbn",
+                        column: x => x.BookIsbn,
+                        principalTable: "Books",
+                        principalColumn: "Isbn",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OwnedBooks_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OwnedBookTag",
+                columns: table => new
+                {
+                    TagsId = table.Column<int>(type: "integer", nullable: false),
+                    OwnedBooksUserId = table.Column<int>(type: "integer", nullable: false),
+                    OwnedBooksBookIsbn = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OwnedBookTag", x => new { x.TagsId, x.OwnedBooksUserId, x.OwnedBooksBookIsbn });
+                    table.ForeignKey(
+                        name: "FK_OwnedBookTag_OwnedBooks_OwnedBooksUserId_OwnedBooksBookIsbn",
+                        columns: x => new { x.OwnedBooksUserId, x.OwnedBooksBookIsbn },
+                        principalTable: "OwnedBooks",
+                        principalColumns: new[] { "UserId", "BookIsbn" },
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OwnedBookTag_Tags_TagsId",
+                        column: x => x.TagsId,
+                        principalTable: "Tags",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AuthorBook_BooksIsbn",
                 table: "AuthorBook",
@@ -162,6 +256,34 @@ namespace BookxBackend.Migrations
                 name: "IX_Books_PublisherId",
                 table: "Books",
                 column: "PublisherId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OwnedBooks_BookIsbn",
+                table: "OwnedBooks",
+                column: "BookIsbn");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OwnedBookTag_OwnedBooksUserId_OwnedBooksBookIsbn",
+                table: "OwnedBookTag",
+                columns: new[] { "OwnedBooksUserId", "OwnedBooksBookIsbn" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tags_UserId_Name",
+                table: "Tags",
+                columns: new[] { "UserId", "Name" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_MailAddress",
+                table: "Users",
+                column: "MailAddress",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Username",
+                table: "Users",
+                column: "Username",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -174,13 +296,25 @@ namespace BookxBackend.Migrations
                 name: "BookGenre");
 
             migrationBuilder.DropTable(
+                name: "OwnedBookTag");
+
+            migrationBuilder.DropTable(
                 name: "Authors");
+
+            migrationBuilder.DropTable(
+                name: "Genres");
+
+            migrationBuilder.DropTable(
+                name: "OwnedBooks");
+
+            migrationBuilder.DropTable(
+                name: "Tags");
 
             migrationBuilder.DropTable(
                 name: "Books");
 
             migrationBuilder.DropTable(
-                name: "Genres");
+                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "Languages");
