@@ -211,7 +211,7 @@ public class UserRelatedService : UserService.UserServiceBase
         // TODO: retrieve book from some kind of API, improve message
         if (book == null)
         {
-            book = await BookApiHelper.RetrieveBookByIsbn(request.Isbn);
+            book = await BookApiHelper.RetrieveBookByIsbn(request.Isbn, _bookxContext);
         }
 
         // TODO: improve message

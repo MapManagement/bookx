@@ -14,7 +14,7 @@ public static class BookApiHelper
         _httpClient.BaseAddress = new Uri(GoogleApiBaseUrl);
     }
 
-    public static async Task<Book> RetrieveBookByIsbn(string isbn)
+    public static async Task<Book> RetrieveBookByIsbn(string isbn, BookxContext dbContext)
     {
         var path = $"volumes?q=isbn:{isbn}";
         HttpResponseMessage response = await _httpClient.GetAsync(path);
@@ -22,11 +22,10 @@ public static class BookApiHelper
         if (!response.IsSuccessStatusCode)
             return null;
 
-        return await JsonBookParser(response);
-
+        return await JsonBookParser(response, dbContext);
     }
 
-    private static async Task<Book> JsonBookParser(HttpResponseMessage bookResponse)
+    private static async Task<Book> JsonBookParser(HttpResponseMessage bookResponse, BookxContext dbContext)
     {
         var googleBook = await bookResponse.Content.ReadFromJsonAsync<GoogleBooksResponse>();
 
@@ -49,10 +48,10 @@ public static class BookApiHelper
             ReleaseDate = DateOnly.Parse(singleGoogleBook.VolumeInfo.PublishedDate),
         };
 
-        ConvertToDbAuthors(singleGoogleBook).ForEach(a => dbBook.Authors.Add(a));
-        ConvertToDbGenres(singleGoogleBook).ForEach(g => dbBook.Genres.Add(g));
-        dbBook.Language = ConvertToDbLanguage(singleGoogleBook);
-        dbBook.Publisher = ConvertToDbPublisher(singleGoogleBook);
+        ConvertToDbAuthors(singleGoogleBook, dbContext).ForEach(a => dbBook.Authors.Add(a));
+        ConvertToDbGenres(singleGoogleBook, dbContext).ForEach(g => dbBook.Genres.Add(g));
+        dbBook.Language = ConvertToDbLanguage(singleGoogleBook, dbContext);
+        dbBook.Publisher = ConvertToDbPublisher(singleGoogleBook, dbContext);
 
         return dbBook;
     }
@@ -76,7 +75,7 @@ public static class BookApiHelper
         return identifiers[0].Identifier;
     }
 
-    private static List<Author> ConvertToDbAuthors(BookItem googleBook)
+    private static List<Author> ConvertToDbAuthors(BookItem googleBook, BookxContext dbContext)
     {
         if (googleBook == null)
             return null;
@@ -87,13 +86,25 @@ public static class BookApiHelper
         foreach (var googleAuthor in googleBook.VolumeInfo.Authors)
         {
             var splittedName = googleAuthor.Split(" ", 2);
+            string firstName = splittedName[0];
+            string lastName = splittedName[1];
 
-            // TODO: birthdate
-            var dbAuthor = new Author()
+            var findAuthor = dbContext.DuplicateAuthorByName(firstName, lastName);
+            Author dbAuthor;
+
+            if (findAuthor == null)
             {
-                FirstName = splittedName[0],
-                LastName = splittedName[1]
-            };
+                // TODO: birthdate
+                dbAuthor = new Author()
+                {
+                    FirstName = firstName,
+                    LastName = lastName
+                };
+            }
+            else
+            {
+                dbAuthor = findAuthor;
+            }
 
             dbAuthors.Add(dbAuthor);
         }
@@ -101,20 +112,30 @@ public static class BookApiHelper
         return dbAuthors;
     }
 
-    private static List<Genre> ConvertToDbGenres(BookItem googleBook)
+    private static List<Genre> ConvertToDbGenres(BookItem googleBook, BookxContext dbContext)
     {
         if (googleBook == null)
             return null;
 
-        // TODO: check for existence
         var dbGenres = new List<Genre>();
 
         foreach (var googleCategory in googleBook.VolumeInfo.Categories)
         {
-            var dbGenre = new Genre()
+            var findGenre = dbContext.DuplicateGenreByName(googleCategory);
+            Genre dbGenre;
+
+            if (findGenre == null)
             {
-                Name = googleCategory
-            };
+
+                dbGenre = new Genre()
+                {
+                    Name = googleCategory
+                };
+            }
+            else
+            {
+                dbGenre = findGenre;
+            }
 
             dbGenres.Add(dbGenre);
         }
@@ -122,31 +143,48 @@ public static class BookApiHelper
         return dbGenres;
     }
 
-    private static Publisher ConvertToDbPublisher(BookItem googleBook)
+    private static Publisher ConvertToDbPublisher(BookItem googleBook, BookxContext dbContext)
     {
         if (googleBook?.VolumeInfo?.Publisher == null)
             return null;
 
-        // TODO: check for existence
-        var dbPublisher = new Publisher()
+        var findPublisher = dbContext.DuplicatePublisherByName(googleBook.VolumeInfo.Publisher);
+        Publisher dbPublisher;
+
+        if (findPublisher == null)
         {
-            Name = googleBook.VolumeInfo.Publisher
-        };
+            dbPublisher = new Publisher()
+            {
+                Name = googleBook.VolumeInfo.Publisher
+            };
+        }
+        else
+        {
+            dbPublisher = findPublisher;
+        }
 
         return dbPublisher;
     }
 
-    private static Language ConvertToDbLanguage(BookItem googleBook)
+    private static Language ConvertToDbLanguage(BookItem googleBook, BookxContext dbContext)
     {
         if (googleBook?.VolumeInfo?.Language == null)
             return null;
 
-        // TODO: check for existence
+        var findLanguage = dbContext.DuplicateLanguageByName(googleBook.VolumeInfo.Language);
+        Language dbLanguage;
 
-        var dbLanguage = new Language()
+        if (findLanguage == null)
         {
-            Name = googleBook.VolumeInfo.Language
-        };
+            dbLanguage = new Language()
+            {
+                Name = googleBook.VolumeInfo.Language
+            };
+        }
+        else
+        {
+            dbLanguage = findLanguage;
+        }
 
         return dbLanguage;
     }
