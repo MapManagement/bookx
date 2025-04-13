@@ -41,7 +41,7 @@ public static class BookApiHelper
         {
             Isbn = FindIsbn13(singleGoogleBook),
             Title = singleGoogleBook.VolumeInfo.Title,
-            CoverPath = singleGoogleBook.VolumeInfo.ImageLinks.Thumbnail,
+            CoverPath = singleGoogleBook?.VolumeInfo?.ImageLinks?.Thumbnail,
             NumerOfPages = singleGoogleBook.VolumeInfo.PageCount,
             ShopLink = singleGoogleBook.VolumeInfo.InfoLink,
             Blurb = singleGoogleBook.VolumeInfo.Description,
@@ -50,6 +50,7 @@ public static class BookApiHelper
 
         ConvertToDbAuthors(singleGoogleBook, dbContext).ForEach(a => dbBook.Authors.Add(a));
         ConvertToDbGenres(singleGoogleBook, dbContext).ForEach(g => dbBook.Genres.Add(g));
+
         dbBook.Language = ConvertToDbLanguage(singleGoogleBook, dbContext);
         dbBook.Publisher = ConvertToDbPublisher(singleGoogleBook, dbContext);
 
@@ -77,11 +78,11 @@ public static class BookApiHelper
 
     private static List<Author> ConvertToDbAuthors(BookItem googleBook, BookxContext dbContext)
     {
-        if (googleBook == null)
-            return null;
-
         // TODO: check for existence
         var dbAuthors = new List<Author>();
+
+        if (googleBook == null)
+            return dbAuthors;
 
         foreach (var googleAuthor in googleBook.VolumeInfo.Authors)
         {
@@ -114,10 +115,10 @@ public static class BookApiHelper
 
     private static List<Genre> ConvertToDbGenres(BookItem googleBook, BookxContext dbContext)
     {
-        if (googleBook == null)
-            return null;
-
         var dbGenres = new List<Genre>();
+
+        if (googleBook?.VolumeInfo?.Categories == null || googleBook.VolumeInfo.Categories.Count < 1)
+            return dbGenres;
 
         foreach (var googleCategory in googleBook.VolumeInfo.Categories)
         {
