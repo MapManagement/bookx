@@ -1,4 +1,5 @@
 using Bookx.Models;
+using System.Globalization;
 
 namespace Bookx.Helpers;
 
@@ -22,20 +23,38 @@ public static class BookApiHelper
         if (!response.IsSuccessStatusCode)
             return null;
 
-        return await JsonBookParser(response, dbContext);
+        var exactResponse = await RetrieveExactBookLink(response);
+
+        if (exactResponse == null || !exactResponse.IsSuccessStatusCode)
+            return null;
+
+        return await JsonBookParser(exactResponse, dbContext);
     }
 
-    private static async Task<Book> JsonBookParser(HttpResponseMessage bookResponse, BookxContext dbContext)
+    private static async Task<HttpResponseMessage> RetrieveExactBookLink(HttpResponseMessage booksResponse)
     {
-        var googleBook = await bookResponse.Content.ReadFromJsonAsync<GoogleBooksResponse>();
-
-        if (googleBook == null || googleBook.Items.Count == 0)
+        var googleBooks = await booksResponse.Content.ReadFromJsonAsync<GoogleBooksResponse>();
+        if (googleBooks == null || googleBooks.Items.Count == 0)
             return null;
 
-        if (googleBook.Items.Count > 1)
+        if (googleBooks.Items.Count > 1)
             return null;
 
-        var singleGoogleBook = googleBook.Items[0];
+        var singleGoogleBook = googleBooks.Items[0];
+
+        if (string.IsNullOrEmpty(singleGoogleBook.SelfLink))
+            return null;
+
+        return await _httpClient.GetAsync(singleGoogleBook.SelfLink);
+    }
+
+    private static async Task<Book> JsonBookParser(HttpResponseMessage bookResponse,
+            BookxContext dbContext)
+    {
+        var singleGoogleBook = await bookResponse.Content.ReadFromJsonAsync<BookItem>();
+
+        if (singleGoogleBook == null)
+            return null;
 
         var dbBook = new Book()
         {
@@ -45,8 +64,18 @@ public static class BookApiHelper
             NumerOfPages = singleGoogleBook.VolumeInfo.PageCount,
             ShopLink = singleGoogleBook.VolumeInfo.InfoLink,
             Blurb = singleGoogleBook.VolumeInfo.Description,
-            ReleaseDate = DateOnly.Parse(singleGoogleBook.VolumeInfo.PublishedDate),
         };
+
+        DateOnly releaseDate;
+
+        if (!DateOnly.TryParseExact(singleGoogleBook.VolumeInfo.PublishedDate, "yyyy",
+                    CultureInfo.InvariantCulture, DateTimeStyles.None, out releaseDate))
+        {
+            DateOnly.TryParseExact(singleGoogleBook.VolumeInfo.PublishedDate, "yyyy-dd-MM",
+                    CultureInfo.InvariantCulture, DateTimeStyles.None, out releaseDate);
+        }
+
+        dbBook.ReleaseDate = releaseDate;
 
         ConvertToDbAuthors(singleGoogleBook, dbContext).ForEach(a => dbBook.Authors.Add(a));
         ConvertToDbGenres(singleGoogleBook, dbContext).ForEach(g => dbBook.Genres.Add(g));
