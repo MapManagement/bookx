@@ -14,6 +14,8 @@ public class UserRelatedService : UserService.UserServiceBase
 {
     #region Fields
 
+    private const string InvalidUserIdClaimMessage = "Invalid user ID claim in JWT";
+
     private readonly ILogger<UserRelatedService> _logger;
     private readonly BookxContext _bookxContext;
 
@@ -38,7 +40,7 @@ public class UserRelatedService : UserService.UserServiceBase
         int? userId = GetUserIdFromClaim(context);
 
         if (userId == null)
-            return CreateNotFoundReply($"Invalid claims in JWT");
+            return CreateNotFoundReply(InvalidUserIdClaimMessage);
 
         OwnedBook dbOwnedBook = await _bookxContext.OwnedBooks
             .Include(ob => ob.Book)
@@ -70,7 +72,7 @@ public class UserRelatedService : UserService.UserServiceBase
         int? userId = GetUserIdFromClaim(context);
 
         if (userId == null)
-            return CreateNotFoundReply($"Invalid claims in JWT");
+            return CreateNotFoundReply(InvalidUserIdClaimMessage);
 
         List<OwnedBook> dbOwnedBooks = await _bookxContext.OwnedBooks
             .Include(ob => ob.Book)
@@ -108,7 +110,7 @@ public class UserRelatedService : UserService.UserServiceBase
         int? userId = GetUserIdFromClaim(context);
 
         if (userId == null)
-            return CreateNotFoundReply($"Invalid claims in JWT");
+            return CreateNotFoundReply(InvalidUserIdClaimMessage);
 
         Tag dbTag = await _bookxContext.Tags
             .SingleAsync(t => t.UserId == userId && t.Id == request.TagId);
@@ -132,7 +134,7 @@ public class UserRelatedService : UserService.UserServiceBase
         int? userId = GetUserIdFromClaim(context);
 
         if (userId == null)
-            return CreateNotFoundReply($"Invalid claims in JWT");
+            return CreateNotFoundReply(InvalidUserIdClaimMessage);
 
         List<Tag> dbTags = await _bookxContext.Tags
             .Where(t => t.UserId == userId)
@@ -161,7 +163,7 @@ public class UserRelatedService : UserService.UserServiceBase
         int? userId = GetUserIdFromClaim(context);
 
         if (userId == null)
-            return CreateNotFoundReply($"Invalid claims in JWT");
+            return CreateNotFoundReply(InvalidUserIdClaimMessage);
 
         List<OwnedBook> dbOwnedBooks = await _bookxContext.OwnedBooks
             .Include(ob => ob.Book)
@@ -203,7 +205,7 @@ public class UserRelatedService : UserService.UserServiceBase
         int? userId = GetUserIdFromClaim(context);
 
         if (userId == null)
-            return InvalidUserReply($"Invalid claims in JWT");
+            return InvalidInputReply(InvalidUserIdClaimMessage);
 
         User dbUser = await _bookxContext.Users.FindAsync(userId);
         Book book = await _bookxContext.Books.FindAsync(request.Isbn);
@@ -213,12 +215,11 @@ public class UserRelatedService : UserService.UserServiceBase
             book = await BookApiHelper.RetrieveBookByIsbn(request.Isbn, _bookxContext);
 
             if (book == null)
-                return InvalidUserReply("Invalid ISBN");
+                return InvalidInputReply("Invalid ISBN");
         }
 
-        // TODO: improve message
         if (dbUser == null)
-            return InvalidUserReply($"Invalid user");
+            return InvalidInputReply("No");
 
         OwnedBook newBook = new OwnedBook()
         {
@@ -246,20 +247,19 @@ public class UserRelatedService : UserService.UserServiceBase
         int? userId = GetUserIdFromClaim(context);
 
         if (userId == null)
-            return InvalidUserReply($"Invalid claims in JWT");
+            return InvalidInputReply(InvalidUserIdClaimMessage);
 
         User dbUser = _bookxContext.Users.Find(userId);
 
-        // TODO: improve message
         if (dbUser == null)
-            return InvalidUserReply($"Invalid user");
+            return InvalidInputReply(BuildInvalidUserIdMessage(userId.Value));
 
         bool tagNameExists = await _bookxContext.Tags
             .AnyAsync(t => t.Name.ToLower() == request.Name.ToLower() && t.UserId == userId);
 
         if (tagNameExists)
         {
-            return InvalidUserReply($"Tag name is already in use");
+            return InvalidInputReply($"Tag name \"{request.Name}\" is already in use");
         }
 
         Tag newTag = new Tag()
@@ -289,18 +289,17 @@ public class UserRelatedService : UserService.UserServiceBase
         int? userId = GetUserIdFromClaim(context);
 
         if (userId == null)
-            return InvalidUserReply($"Invalid claims in JWT");
+            return InvalidInputReply(InvalidUserIdClaimMessage);
 
         User dbUser = await _bookxContext.Users.FindAsync(userId);
         OwnedBook ownedBook = await _bookxContext.OwnedBooks
             .SingleOrDefaultAsync(ob => ob.Id == request.OwnedBookId && ob.UserId == userId);
 
         if (ownedBook == null)
-            return InvalidUserReply($"Couldn't find any owned book with ID {request.OwnedBookId}");
+            return InvalidInputReply($"Couldn't find any owned book with ID {request.OwnedBookId}");
 
-        // TODO: improve message
         if (dbUser == null)
-            return InvalidUserReply($"Invalid user");
+            return InvalidInputReply(BuildInvalidUserIdMessage(userId.Value));
 
         _bookxContext.OwnedBooks.Remove(ownedBook);
         await _bookxContext.SaveChangesAsync();
@@ -318,18 +317,17 @@ public class UserRelatedService : UserService.UserServiceBase
         int? userId = GetUserIdFromClaim(context);
 
         if (userId == null)
-            return InvalidUserReply($"Invalid claims in JWT");
+            return InvalidInputReply(InvalidUserIdClaimMessage);
 
         User dbUser = await _bookxContext.Users.FindAsync(userId);
         Tag tag = await _bookxContext.Tags
             .SingleOrDefaultAsync(t => t.Id == request.TagId && t.UserId == userId);
 
         if (tag == null)
-            return InvalidUserReply($"Couldn't find any tag with ID {request.TagId}");
+            return InvalidInputReply($"Couldn't find any tag with ID {request.TagId}");
 
-        // TODO: improve message
         if (dbUser == null)
-            return InvalidUserReply($"Invalid user");
+            return InvalidInputReply(BuildInvalidUserIdMessage(userId.Value));
 
         _bookxContext.Tags.Remove(tag);
         await _bookxContext.SaveChangesAsync();
@@ -351,18 +349,17 @@ public class UserRelatedService : UserService.UserServiceBase
         int? userId = GetUserIdFromClaim(context);
 
         if (userId == null)
-            return InvalidUserReply($"Invalid claims in JWT");
+            return InvalidInputReply(InvalidUserIdClaimMessage);
 
         User dbUser = await _bookxContext.Users.FindAsync(userId);
         OwnedBook ownedBook = await _bookxContext.OwnedBooks
             .SingleOrDefaultAsync(ob => ob.Id == request.Id && ob.UserId == userId);
 
         if (ownedBook == null)
-            return InvalidUserReply($"Couldn't find any owned book with ID {request.Id}");
+            return InvalidInputReply($"Couldn't find any owned book with ID {request.Id}");
 
-        // TODO: improve message
         if (dbUser == null)
-            return InvalidUserReply($"Invalid user");
+            return InvalidInputReply(BuildInvalidUserIdMessage(userId.Value));
 
         ownedBook.Rating = request.Rating;
         ownedBook.Comment = request.Comment;
@@ -383,18 +380,17 @@ public class UserRelatedService : UserService.UserServiceBase
         int? userId = GetUserIdFromClaim(context);
 
         if (userId == null)
-            return InvalidUserReply($"Invalid claims in JWT");
+            return InvalidInputReply(InvalidUserIdClaimMessage);
 
         User dbUser = await _bookxContext.Users.FindAsync(userId);
         Tag tag = await _bookxContext.Tags
             .SingleOrDefaultAsync(t => t.Id == request.Id && t.UserId == userId);
 
         if (tag == null)
-            return InvalidUserReply($"Couldn't find any tag with ID {request.Id}");
+            return InvalidInputReply($"Couldn't find any tag with ID {request.Id}");
 
-        // TODO: improve message
         if (dbUser == null)
-            return InvalidUserReply($"Invalid user");
+            return InvalidInputReply(BuildInvalidUserIdMessage(userId.Value));
 
         tag.Name = request.Name;
         tag.Color = request.Color;
@@ -425,12 +421,12 @@ public class UserRelatedService : UserService.UserServiceBase
         };
     }
 
-    private SuccessReply InvalidUserReply(string message)
+    private SuccessReply InvalidInputReply(string messageText)
     {
         return new SuccessReply()
         {
             Success = false,
-            FailureMessage = message
+            FailureMessage = messageText
         };
     }
 
@@ -445,6 +441,11 @@ public class UserRelatedService : UserService.UserServiceBase
             return null;
 
         return userId;
+    }
+
+    private string BuildInvalidUserIdMessage(int userId)
+    {
+        return $"The user with the ID {userId} has not been found";
     }
 
     #endregion
