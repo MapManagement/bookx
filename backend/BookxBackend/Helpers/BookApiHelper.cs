@@ -34,7 +34,8 @@ public static class BookApiHelper
     private static async Task<HttpResponseMessage> RetrieveExactBookLink(HttpResponseMessage booksResponse)
     {
         var googleBooks = await booksResponse.Content.ReadFromJsonAsync<GoogleBooksResponse>();
-        if (googleBooks == null || googleBooks.Items.Count == 0)
+
+        if (googleBooks?.Items?.Count == null || googleBooks.Items.Count == 0)
             return null;
 
         if (googleBooks.Items.Count > 1)

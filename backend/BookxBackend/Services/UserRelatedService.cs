@@ -208,10 +208,12 @@ public class UserRelatedService : UserService.UserServiceBase
         User dbUser = await _bookxContext.Users.FindAsync(userId);
         Book book = await _bookxContext.Books.FindAsync(request.Isbn);
 
-        // TODO: retrieve book from some kind of API, improve message
         if (book == null)
         {
             book = await BookApiHelper.RetrieveBookByIsbn(request.Isbn, _bookxContext);
+
+            if (book == null)
+                return InvalidUserReply("Invalid ISBN");
         }
 
         // TODO: improve message

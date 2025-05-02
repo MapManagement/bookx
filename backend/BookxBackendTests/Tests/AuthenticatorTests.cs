@@ -11,7 +11,7 @@ namespace BookxBackendTests.Tests
         [InlineData("Herman", "Hesse", "Herman.Hesse@mail.com")]
         [InlineData("Ernst Theodor Amadeus", "Hoffmann", "ETA.Hoffmann@mail.com")]
         [InlineData("Friedrich", "Dürrenmatt", "Friedrich.Dürrenmatt@mail.com")]
-        public async Task SuccessfulRegister(string username, string password, string mailAddress)
+        public async Task SuccessRegisterUser(string username, string password, string mailAddress)
         {
             using (var backend = GrpcCallHelper.CreateTestBackend())
             {
@@ -37,7 +37,7 @@ namespace BookxBackendTests.Tests
         [InlineData("Patrick", "", "Patrick.Süskind@mail.com")]
         [InlineData("Friedrich", "Schiller", "")]
         [InlineData("", "", "")]
-        public async Task FailedRegister(string username, string password, string mailAddress)
+        public async Task FailRegisterUser(string username, string password, string mailAddress)
         {
             using (var backend = GrpcCallHelper.CreateTestBackend())
             {
@@ -62,7 +62,7 @@ namespace BookxBackendTests.Tests
 
         [Theory]
         [InlineData("Franz", "Kafka", "Franz.Kafka@mail.com")]
-        public async Task SuccessfulLogin(string username, string password, string mailAddress)
+        public async Task SuccessLoginUser(string username, string password, string mailAddress)
         {
             using (var backend = GrpcCallHelper.CreateTestBackend())
             {
@@ -90,7 +90,7 @@ namespace BookxBackendTests.Tests
         [InlineData("", "Maria-Remarque")]
         [InlineData("Erich Maria", "")]
         [InlineData("", "")]
-        public async Task FailedLogin(string username, string password)
+        public async Task FailLoginUser(string username, string password)
         {
             using (var backend = GrpcCallHelper.CreateTestBackend())
             {
