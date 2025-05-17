@@ -6,6 +6,7 @@ using BookxProtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
+using System.Text.RegularExpressions;
 
 namespace Bookx.Services;
 
@@ -51,10 +52,10 @@ public class UserRelatedService : UserService.UserServiceBase
                 .ThenInclude(b => b.Genres)
             .Include(ob => ob.Book)
                 .ThenInclude(b => b.Publisher)
-            .SingleAsync(ob => ob.UserId == userId && ob.Id == request.OwnedBookId);
+            .SingleAsync(ob => ob.UserId == userId && ob.BookIsbn == request.Isbn);
 
         if (dbOwnedBook == null)
-            return CreateNotFoundReply($"Couldn't find any owned book with ID {request.OwnedBookId}");
+            return CreateNotFoundReply($"Couldn't find any owned book with ISBN \"{request.Isbn}\"");
 
         ReadSingleOwnedBook protoOwnedBook = ProtoDbEntityConverter.DbToProtoOwnedBook(dbOwnedBook);
 
@@ -236,7 +237,8 @@ public class UserRelatedService : UserService.UserServiceBase
 
         SuccessReply reply = new SuccessReply()
         {
-            Success = true
+            Success = true,
+            ObjectId = newBook.BookIsbn
         };
 
         return reply;
@@ -254,13 +256,17 @@ public class UserRelatedService : UserService.UserServiceBase
         if (dbUser == null)
             return InvalidInputReply(BuildInvalidUserIdMessage(userId.Value));
 
+        if (string.IsNullOrWhiteSpace(request.Name))
+            return InvalidInputReply("Tag name cannot be empty or only whitespace");
+
         bool tagNameExists = await _bookxContext.Tags
             .AnyAsync(t => t.Name.ToLower() == request.Name.ToLower() && t.UserId == userId);
 
         if (tagNameExists)
-        {
             return InvalidInputReply($"Tag name \"{request.Name}\" is already in use");
-        }
+
+        if (!IsHexColorValid(request.Color))
+            return InvalidInputReply($"String \"{request.Color}\" is no valid hexadecimal color code");
 
         Tag newTag = new Tag()
         {
@@ -274,7 +280,8 @@ public class UserRelatedService : UserService.UserServiceBase
 
         SuccessReply reply = new SuccessReply()
         {
-            Success = true
+            Success = true,
+            ObjectId = newTag.Id.ToString()
         };
 
         return reply;
@@ -291,15 +298,19 @@ public class UserRelatedService : UserService.UserServiceBase
         if (userId == null)
             return InvalidInputReply(InvalidUserIdClaimMessage);
 
-        User dbUser = await _bookxContext.Users.FindAsync(userId);
-        OwnedBook ownedBook = await _bookxContext.OwnedBooks
-            .SingleOrDefaultAsync(ob => ob.Id == request.OwnedBookId && ob.UserId == userId);
+        if (string.IsNullOrWhiteSpace(request.Isbn))
+            return InvalidInputReply("ID of owned book cannot be null");
 
-        if (ownedBook == null)
-            return InvalidInputReply($"Couldn't find any owned book with ID {request.OwnedBookId}");
+        User dbUser = await _bookxContext.Users.FindAsync(userId);
 
         if (dbUser == null)
             return InvalidInputReply(BuildInvalidUserIdMessage(userId.Value));
+
+        OwnedBook ownedBook = await _bookxContext.OwnedBooks
+            .SingleOrDefaultAsync(ob => ob.BookIsbn == request.Isbn && ob.UserId == userId);
+
+        if (ownedBook == null)
+            return InvalidInputReply($"Couldn't find any owned book with ISBN \"{request.Isbn}\"");
 
         _bookxContext.OwnedBooks.Remove(ownedBook);
         await _bookxContext.SaveChangesAsync();
@@ -353,10 +364,10 @@ public class UserRelatedService : UserService.UserServiceBase
 
         User dbUser = await _bookxContext.Users.FindAsync(userId);
         OwnedBook ownedBook = await _bookxContext.OwnedBooks
-            .SingleOrDefaultAsync(ob => ob.Id == request.Id && ob.UserId == userId);
+            .SingleOrDefaultAsync(ob => ob.BookIsbn == request.Isbn && ob.UserId == userId);
 
         if (ownedBook == null)
-            return InvalidInputReply($"Couldn't find any owned book with ID {request.Id}");
+            return InvalidInputReply($"Couldn't find any owned book with ISBN \"{request.Isbn}\"");
 
         if (dbUser == null)
             return InvalidInputReply(BuildInvalidUserIdMessage(userId.Value));
@@ -446,6 +457,16 @@ public class UserRelatedService : UserService.UserServiceBase
     private string BuildInvalidUserIdMessage(int userId)
     {
         return $"The user with the ID {userId} has not been found";
+    }
+
+    private bool IsHexColorValid(string hexColor)
+    {
+        if (string.IsNullOrWhiteSpace(hexColor))
+            return false;
+
+        Regex validHexColor = new Regex(@"^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$");
+
+        return validHexColor.IsMatch(hexColor);
     }
 
     #endregion

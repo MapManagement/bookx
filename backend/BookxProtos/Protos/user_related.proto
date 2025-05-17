@@ -29,6 +29,7 @@ service UserService {
 message SuccessReply {
   bool success = 1;
   optional string failure_message = 2;
+  optional string object_id = 3;
 }
 
 message UserRelatedRequestReply {
@@ -43,17 +44,17 @@ message UserRelatedRequestReply {
   }
 }
 
-message SingleOwnedBookRequest { int32 owned_book_id = 1; }
+message SingleOwnedBookRequest { string isbn = 1; }
 
 message AddSingleOwnedBook {
-  string Isbn = 1;
+  string isbn = 1;
   int32 rating = 2;
   optional string comment = 3;
   bool would_recommend = 4;
 }
 
 message EditSingleOwnedBook {
-  int32 id = 1;
+  string Isbn = 1;
   int32 rating = 2;
   optional string comment = 3;
   bool would_recommend = 4;

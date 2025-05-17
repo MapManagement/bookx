@@ -90,7 +90,6 @@ public static class ProtoDbEntityConverter
 
         var protoOwnedBook = new ReadSingleOwnedBook()
         {
-            Id = dbOwnedBook.Id,
             Book = protoBook,
             Rating = dbOwnedBook.Rating,
             Comment = dbOwnedBook.Comment,

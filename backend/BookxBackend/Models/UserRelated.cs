@@ -25,7 +25,6 @@ namespace Bookx.Models
 
     public class OwnedBook
     {
-        public int Id { get; set; }
         public int UserId { get; set; }
         public User User { get; set; } = null!;
         public string BookIsbn { get; set; }
