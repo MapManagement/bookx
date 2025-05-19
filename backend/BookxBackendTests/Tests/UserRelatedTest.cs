@@ -52,10 +52,8 @@ namespace BookxBackendTests.Tests
                 if (!string.IsNullOrEmpty(comment))
                     newBookRequest.Comment = comment;
 
-                var requestMetadata = new Metadata();
-                requestMetadata.Add("Authorization", $"Bearer {registerReply.Token}");
-
-                var newBookReply = await userClient.AddOwnedBookAsync(newBookRequest, requestMetadata);
+                var metadata = GrpcCallHelper.CreateAuthMetadata(registerReply.Token);
+                var newBookReply = await userClient.AddOwnedBookAsync(newBookRequest, metadata);
 
                 Assert.True(newBookReply.Success);
             }
@@ -86,10 +84,8 @@ namespace BookxBackendTests.Tests
                 if (!string.IsNullOrEmpty(comment))
                     newBookRequest.Comment = comment;
 
-                var requestMetadata = new Metadata();
-                requestMetadata.Add("Authorization", $"Bearer {registerReply.Token}");
-
-                var newBookReply = await userClient.AddOwnedBookAsync(newBookRequest, requestMetadata);
+                var metadata = GrpcCallHelper.CreateAuthMetadata(registerReply.Token);
+                var newBookReply = await userClient.AddOwnedBookAsync(newBookRequest, metadata);
 
                 Assert.False(newBookReply.Success);
                 Assert.NotNull(newBookReply.FailureMessage);
@@ -117,10 +113,8 @@ namespace BookxBackendTests.Tests
                     Color = color
                 };
 
-                var requestMetadata = new Metadata();
-                requestMetadata.Add("Authorization", $"Bearer {registerReply.Token}");
-
-                var newTagReply = await userClient.AddTagAsync(newTagRequest, requestMetadata);
+                var metadata = GrpcCallHelper.CreateAuthMetadata(registerReply.Token);
+                var newTagReply = await userClient.AddTagAsync(newTagRequest, metadata);
 
                 Assert.True(newTagReply.Success);
             }
@@ -151,10 +145,9 @@ namespace BookxBackendTests.Tests
                     Color = color
                 };
 
-                var requestMetadata = new Metadata();
-                requestMetadata.Add("Authorization", $"Bearer {registerReply.Token}");
+                var metadata = GrpcCallHelper.CreateAuthMetadata(registerReply.Token);
 
-                var newTagReply = await userClient.AddTagAsync(newTagRequest, requestMetadata);
+                var newTagReply = await userClient.AddTagAsync(newTagRequest, metadata);
 
                 Assert.False(newTagReply.Success);
                 Assert.NotNull(newTagReply.FailureMessage);
@@ -181,14 +174,12 @@ namespace BookxBackendTests.Tests
                     Color = color
                 };
 
-                var requestMetadata = new Metadata();
-                requestMetadata.Add("Authorization", $"Bearer {registerReply.Token}");
-
-                var newTagReply = await userClient.AddTagAsync(newTagRequest, requestMetadata);
+                var metadata = GrpcCallHelper.CreateAuthMetadata(registerReply.Token);
+                var newTagReply = await userClient.AddTagAsync(newTagRequest, metadata);
 
                 Assert.True(newTagReply.Success);
 
-                newTagReply = await userClient.AddTagAsync(newTagRequest, requestMetadata);
+                newTagReply = await userClient.AddTagAsync(newTagRequest, metadata);
 
                 Assert.False(newTagReply.Success);
                 Assert.NotNull(newTagReply.FailureMessage);
@@ -211,20 +202,7 @@ namespace BookxBackendTests.Tests
 
                 var userClient = new UserService.UserServiceClient(backend.GrpcChannel);
 
-                var newBookRequest = new AddSingleOwnedBook()
-                {
-                    Isbn = isbn,
-                    Rating = rating,
-                    WouldRecommend = wouldRecommend
-                };
-
-                if (!string.IsNullOrEmpty(comment))
-                    newBookRequest.Comment = comment;
-
-                var requestMetadata = new Metadata();
-                requestMetadata.Add("Authorization", $"Bearer {registerReply.Token}");
-
-                var newBookReply = await userClient.AddOwnedBookAsync(newBookRequest, requestMetadata);
+                var newBookReply = await GrpcCallHelper.AddNewBook(userClient, registerReply.Token, isbn, rating, wouldRecommend, comment);
 
                 Assert.True(newBookReply.Success);
 
@@ -233,7 +211,8 @@ namespace BookxBackendTests.Tests
                     Isbn = newBookReply.ObjectId
                 };
 
-                var removeBookReply = await userClient.RemoveOwnedBookAsync(removeBookRequest, requestMetadata);
+                var metadata = GrpcCallHelper.CreateAuthMetadata(registerReply.Token);
+                var removeBookReply = await userClient.RemoveOwnedBookAsync(removeBookRequest, metadata);
 
                 Assert.True(removeBookReply.Success);
             }
@@ -255,18 +234,12 @@ namespace BookxBackendTests.Tests
 
                 var userClient = new UserService.UserServiceClient(backend.GrpcChannel);
 
-                var newBookRequest = new AddSingleOwnedBook()
-                {
-                    Isbn = "9783641279110",
-                    Rating = 2,
-                    WouldRecommend = false
-                };
-                newBookRequest.Comment = "Some comment";
-
-                var requestMetadata = new Metadata();
-                requestMetadata.Add("Authorization", $"Bearer {registerReply.Token}");
-
-                var newBookReply = await userClient.AddOwnedBookAsync(newBookRequest, requestMetadata);
+                var newBookReply = await GrpcCallHelper.AddNewBook(userClient,
+                                                                   registerReply.Token,
+                                                                   "9783641279110",
+                                                                   2,
+                                                                   false,
+                                                                   "Some Comment");
 
                 Assert.True(newBookReply.Success);
 
@@ -276,7 +249,8 @@ namespace BookxBackendTests.Tests
                     Isbn = deleteBookIsbn
                 };
 
-                var removeBookReply = await userClient.RemoveOwnedBookAsync(removeBookRequest, requestMetadata);
+                var metadata = GrpcCallHelper.CreateAuthMetadata(registerReply.Token);
+                var removeBookReply = await userClient.RemoveOwnedBookAsync(removeBookRequest, metadata);
 
                 Assert.False(removeBookReply.Success);
                 Assert.NotNull(removeBookReply.FailureMessage);
