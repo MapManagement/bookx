@@ -1,7 +1,6 @@
 using BookxProtos;
 using BookxBackendTests.Fixtures;
 using BookxBackendTests.Helpers;
-using Grpc.Core;
 
 namespace BookxBackendTests.Tests
 {
@@ -30,7 +29,7 @@ namespace BookxBackendTests.Tests
         [InlineData("9783641279110", 8, "Some comment", true)]
         [InlineData("9780692818404", 2, null, false)]
         [InlineData("9781639883400", 9, "Some comment", true)]
-        public async Task SuccessAddOwnedBook(string isbn, int rating, string comment, bool wouldRecommend)
+        public async Task SuccessAddOwnedBook(string isbn, int rating, string? comment, bool wouldRecommend)
         {
             using (var backend = GrpcCallHelper.CreateTestBackend())
             {
@@ -190,7 +189,7 @@ namespace BookxBackendTests.Tests
         [InlineData("9783641279110", 8, "Some comment", true)]
         [InlineData("9780692818404", 2, null, false)]
         [InlineData("9781639883400", 9, "Some comment", true)]
-        public async Task SuccessRemoveOwnedBook(string isbn, int rating, string comment, bool wouldRecommend)
+        public async Task SuccessRemoveOwnedBook(string isbn, int rating, string? comment, bool wouldRecommend)
         {
             using (var backend = GrpcCallHelper.CreateTestBackend())
             {
@@ -257,7 +256,121 @@ namespace BookxBackendTests.Tests
             }
         }
 
+        [Theory]
+        [InlineData("9783641279110", 10, "Some new comment", true)]
+        [InlineData("9780692818404", null, "Some new comment", true)]
+        [InlineData("9780692818404", 10, null, true)]
+        [InlineData("9780692818404", 10, "Some new comment", null)]
+        [InlineData("9780692818404", null, null, null)]
+        public async Task SuccessEditOwnedBook(string isbn, int? rating, string? comment, bool? wouldRecommend)
+        {
+            const int initialRating = 5;
+            const bool initialWouldRecommend = false;
+            const string initialComment = "Some comment";
 
+            using (var backend = GrpcCallHelper.CreateTestBackend())
+            {
+                var authClient = new Authenticator.AuthenticatorClient(backend.GrpcChannel);
+
+                var registerReply = await GrpcCallHelper.RegisterNewUser(
+                        authClient: authClient,
+                        username: LoginUsername,
+                        password: LoginPassword,
+                        mailAddress: LoginMailAddress
+                );
+
+                Assert.True(registerReply.ValidRegistration);
+
+                var userClient = new UserService.UserServiceClient(backend.GrpcChannel);
+
+                var newBookReply = await GrpcCallHelper.AddNewBook(
+                        userServiceClient: userClient,
+                        jwt: registerReply.Token,
+                        isbn: isbn,
+                        rating: initialRating,
+                        wouldRecommend: initialWouldRecommend,
+                        comment: initialComment
+                );
+
+                Assert.True(newBookReply.Success);
+
+                var editBookRequest = new EditSingleOwnedBook()
+                {
+                    Isbn = isbn,
+                };
+
+                if (rating != null)
+                    editBookRequest.Rating = rating.Value;
+
+                if (comment != null)
+                    editBookRequest.Comment = comment;
+
+                if (wouldRecommend != null)
+                    editBookRequest.WouldRecommend = wouldRecommend.Value;
+
+                var metadata = GrpcCallHelper.CreateAuthMetadata(registerReply.Token);
+                var editBookReply = await userClient.EditOwnedBookAsync(editBookRequest, metadata);
+
+                Assert.True(editBookReply.Success);
+            }
+        }
+
+        [Theory]
+        [InlineData("jfksajfkasklf", 10, "Some new comment", true)]
+        public async Task FailEditOwnedBook(string isbn, int? rating, string? comment, bool? wouldRecommend)
+        {
+            const string initialIsbn = "9783641279110";
+            const int initialRating = 5;
+            const bool initialWouldRecommend = false;
+            const string initialComment = "Some comment";
+
+            using (var backend = GrpcCallHelper.CreateTestBackend())
+            {
+                var authClient = new Authenticator.AuthenticatorClient(backend.GrpcChannel);
+
+                var registerReply = await GrpcCallHelper.RegisterNewUser(
+                        authClient: authClient,
+                        username: LoginUsername,
+                        password: LoginPassword,
+                        mailAddress: LoginMailAddress
+                );
+
+                Assert.True(registerReply.ValidRegistration);
+
+                var userClient = new UserService.UserServiceClient(backend.GrpcChannel);
+
+                var newBookReply = await GrpcCallHelper.AddNewBook(
+                        userServiceClient: userClient,
+                        jwt: registerReply.Token,
+                        isbn: initialIsbn,
+                        rating: initialRating,
+                        wouldRecommend: initialWouldRecommend,
+                        comment: initialComment
+                );
+
+                Assert.True(newBookReply.Success);
+
+                var editBookRequest = new EditSingleOwnedBook()
+                {
+                    Isbn = isbn,
+                };
+
+                if (rating != null)
+                    editBookRequest.Rating = rating.Value;
+
+                if (comment != null)
+                    editBookRequest.Comment = comment;
+
+                if (wouldRecommend != null)
+                    editBookRequest.WouldRecommend = wouldRecommend.Value;
+
+                var metadata = GrpcCallHelper.CreateAuthMetadata(registerReply.Token);
+                var editBookReply = await userClient.EditOwnedBookAsync(editBookRequest, metadata);
+
+                Assert.False(editBookReply.Success);
+                Assert.NotNull(editBookReply.FailureMessage);
+            }
+        }
 
         #endregion
     }

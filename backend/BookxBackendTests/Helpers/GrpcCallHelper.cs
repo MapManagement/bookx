@@ -33,7 +33,7 @@ namespace BookxBackendTests.Helpers
                                                             string isbn,
                                                             int rating = 5,
                                                             bool wouldRecommend = true,
-                                                            string comment = "Some Comment")
+                                                            string? comment = "Some Comment")
         {
             var newBookRequest = new AddSingleOwnedBook()
             {

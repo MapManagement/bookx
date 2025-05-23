@@ -16,7 +16,7 @@ namespace BookxBackendTests.Factories
 
         // database is released from memory as soon as the last connection
         // has been terminated, so keep one in a private field for testing
-        private SqliteConnection _dbConnection;
+        private SqliteConnection? _dbConnection;
 
         #endregion
 
@@ -46,7 +46,7 @@ namespace BookxBackendTests.Factories
         {
             base.Dispose(disposing);
 
-            if (disposing)
+            if (disposing && _dbConnection != null)
             {
                 _dbConnection.Dispose();
             }

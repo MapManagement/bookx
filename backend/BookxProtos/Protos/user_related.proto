@@ -55,9 +55,9 @@ message AddSingleOwnedBook {
 
 message EditSingleOwnedBook {
   string Isbn = 1;
-  int32 rating = 2;
+  optional int32 rating = 2;
   optional string comment = 3;
-  bool would_recommend = 4;
+  optional bool would_recommend = 4;
 }
 
 message ReadSingleOwnedBook {
