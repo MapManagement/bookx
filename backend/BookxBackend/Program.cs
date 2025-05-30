@@ -31,6 +31,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.MapInboundClaims = false;
     });
 
+builder.Services.AddCors(o => o.AddPolicy("AllowAll", builder =>
+{
+    builder.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
+}));
+
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
@@ -38,13 +46,25 @@ var app = builder.Build();
 // TODO: in production?
 app.MapGrpcReflectionService();
 
+app.UseGrpcWeb();
+app.UseCors();
+
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGrpcService<AuthenticationService>();
-app.MapGrpcService<BookRelatedService>();
-app.MapGrpcService<UserRelatedService>();
+app.MapGrpcService<AuthenticationService>()
+    .EnableGrpcWeb()
+    .RequireCors("AllowAll");
+
+app.MapGrpcService<BookRelatedService>()
+    .EnableGrpcWeb()
+    .RequireCors("AllowAll");
+
+app.MapGrpcService<UserRelatedService>()
+    .EnableGrpcWeb()
+    .RequireCors("AllowAll");
+
 app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
 
 app.Run();

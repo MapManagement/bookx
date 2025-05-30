@@ -55,7 +55,7 @@ Sample ``appsettings.json`` (alternatively ``appsettings.Development.json`` in
   "AllowedHosts": "*",
   "Kestrel": {
     "EndpointDefaults": {
-      "Protocols": "Http2"
+      "Protocols": "Http1AndHttp2"
     }
   }
 }
