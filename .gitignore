@@ -139,3 +139,7 @@ launchSettings.json
 # Environment Variables
 *.env
 
+# Frontend Ignore
+.idea/
+/frontend/node_modules/
+/frontend/lib/proto/
