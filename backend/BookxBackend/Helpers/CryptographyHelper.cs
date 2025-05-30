@@ -85,15 +85,14 @@ public static class CryptographyHelper
     {
         string pepperedText = new StringBuilder(text).Append(_passwordPepper).ToString();
 
-        byte[] computedHash = Rfc2898DeriveBytes.Pbkdf2(
+        var computedHash = new Rfc2898DeriveBytes(
                 Encoding.UTF8.GetBytes(pepperedText),
                 Convert.FromHexString(salt),
                 _iterations,
-                _passwordHashAlgorithm,
-                _keySize
+                _passwordHashAlgorithm
             );
 
-        return Convert.ToHexString(computedHash);
+        return Convert.ToHexString(computedHash.GetBytes(_keySize));
     }
 
     private static string GeneratePasswordSalt()
