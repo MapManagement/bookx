@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "proto-gen": "npx proto-loader-gen-types --longs=String --enums=String --defaults --oneofs --grpcLib=@grpc/grpc-js -I=../backend/BookxProtos/Protos/ --outDir=lib/proto/ ../backend/BookxProtos/Protos/*.proto"
+    "proto-gen": "npx proto-loader-gen-types --longs=String --enums=String --defaults --oneofs --grpcLib=@grpc/grpc-js --outDir=lib/proto/ ../backend/BookxProtos/Protos/*.proto"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.13.4",
