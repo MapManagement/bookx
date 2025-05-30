@@ -7,20 +7,20 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "proto-gen": "npx proto-loader-gen-types --longs=String --enums=String --defaults --oneofs --grpcLib=@grpc/grpc-js --outDir=lib/proto/ ../backend/BookxProtos/Protos/*.proto"
+    "proto-gen": "protoc --plugin=\"protoc-gen-ts=./node_modules/.bin/protoc-gen-ts\" --js_out=\"import_style=commonjs,binary:./lib/proto\" --ts_out=\"service=grpc-web:./lib/proto\" --proto_path=\"../backend/BookxProtos/Protos\" ../backend/BookxProtos/Protos/*.proto"
   },
   "dependencies": {
-    "@grpc/grpc-js": "^1.13.4",
-    "@grpc/proto-loader": "^0.7.15",
     "@improbable-eng/grpc-web": "^0.15.0",
     "@improbable-eng/grpc-web-node-http-transport": "^0.15.0",
+    "@radix-ui/react-slot": "^1.2.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.511.0",
     "next": "15.3.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tailwind-merge": "^3.3.0"
+    "tailwind-merge": "^3.3.0",
+    "ts-protoc-gen": "^0.15.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
