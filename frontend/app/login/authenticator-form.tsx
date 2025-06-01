@@ -6,9 +6,10 @@ import {z} from "zod"
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
-import {LoginRequest, RegisterRequest} from "@/lib/proto/authentication_pb";
-import {AuthenticatorClient} from "@/lib/proto/authentication_pb_service";
+import {LoginReply, LoginRequest, RegisterReply, RegisterRequest} from "@/lib/proto/authentication_pb";
+import {AuthenticatorClient, ServiceError} from "@/lib/proto/authentication_pb_service";
 import {useState} from "react";
+import {toast} from "sonner";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -27,10 +28,10 @@ const formSchema = z.object({
 })
 
 interface AuthenticatorFormProps {
-  mode: "login"  | "register";
+  mode: "login" | "register";
 }
 
-export function AuthenticationForm( {mode}: AuthenticatorFormProps) {
+export function AuthenticationForm({mode}: AuthenticatorFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -40,6 +41,8 @@ export function AuthenticationForm( {mode}: AuthenticatorFormProps) {
     },
   })
   const [hasTriedSubmitting, setTriedSubmitting] = useState<boolean>(false)
+  const [submitLoading, setSubmitLoading] = useState<boolean>(false)
+  const client = new AuthenticatorClient("http://localhost:5001")
 
   function register(email: string, username: string, password: string) {
     const request = new RegisterRequest();
@@ -47,44 +50,41 @@ export function AuthenticationForm( {mode}: AuthenticatorFormProps) {
     request.setUsername(username);
     request.setPassword(password);
 
-    const client = new AuthenticatorClient("http://localhost:5001")
-    client.register(request, (error, responseMessage) => {
-      if(error) {
-        console.log('encountered error :c')
-        console.log(error.message)
-        return
-      } else if(responseMessage?.hasFailuremessage()) {
-        console.log(responseMessage?.getFailuremessage())
-      } else {
-        console.log("JWT Token: ",  responseMessage?.getToken())
-      }
-    })
+    client.register(
+      request,
+      (error, responseMessage) => handleResponse(error, responseMessage))
   }
 
   function login(username: string, password: string) {
-    const client = new AuthenticatorClient("http://localhost:5001")
     const request = new LoginRequest();
     request.setUsername(username);
     request.setPassword(password);
 
-    client.login(request, (error, responseMessage) => {
-      if(error) {
-        console.log('encountered error :c')
-        console.log(error.message)
-      } else if(responseMessage?.hasFailuremessage()) {
-        console.log(responseMessage?.getFailuremessage())
-      } else {
-        console.log("JWT Token: ",  responseMessage?.getToken())
-      }
-    })
+    client.login(
+      request,
+      (error, responseMessage) => handleResponse(error, responseMessage))
+  }
+
+  function handleResponse(error: ServiceError | null, responseMessage: LoginReply | RegisterReply | null) {
+    if (error) {
+      toast.error(error.message)
+    } else if (responseMessage?.hasFailuremessage()) {
+      toast.error(responseMessage?.getFailuremessage())
+    } else if (responseMessage?.hasToken()) {
+      toast.success("Login complete!");
+      console.log("JWT Token: ", responseMessage?.getToken())
+      setTriedSubmitting(false);
+    }
   }
 
   function onValidSubmit(values: z.infer<typeof formSchema>) {
-    if(mode === "login") {
+    setSubmitLoading(true);
+    if (mode === "login") {
       login(values.username, values.password)
     } else {
       register(values.email, values.username, values.password)
     }
+    setSubmitLoading(false);
   }
 
   return (
@@ -135,13 +135,16 @@ export function AuthenticationForm( {mode}: AuthenticatorFormProps) {
               </FormItem>
             )}
           />
-            <Button
-              type="submit"
-              className={'w-full'}
-              disabled={!form.formState.isValid && hasTriedSubmitting}
-            >
-              Submit
-            </Button>
+          <Button
+            type="submit"
+            className={'w-full'}
+            disabled={!form.formState.isValid && hasTriedSubmitting}
+          >
+            {
+              submitLoading ? "..." :
+                mode === "login" ? "Login" : "Register"
+            }
+          </Button>
         </form>
       </Form>
     </div>
