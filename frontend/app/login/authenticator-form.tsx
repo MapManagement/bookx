@@ -6,11 +6,13 @@ import {z} from "zod"
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
-import {authenticate} from "@/app/actions/auth";
+import {signIn, signUp} from "@/app/actions/auth";
 import {AuthModes} from "@/lib/types";
+import {redirect} from "next/navigation";
 import {toast} from "sonner";
+import React from "react";
 
-export const authFormSchema = z.object({
+const registerFormSchema = z.object({
   email: z.string().email({
     message: "Enter a valid email address",
   }),
@@ -25,33 +27,55 @@ export const authFormSchema = z.object({
     message: "Enter a valid password",
   })
 })
+type RegisterData = z.infer<typeof registerFormSchema>
+
+const loginFormSchema =  z.object({
+  username: z.string({
+    required_error: "Username is required"
+  }).min(2, {
+    message: "Enter a valid username",
+  }),
+  password: z.string({
+    required_error: "Password is required"
+  }).min(12, {
+    message: "Enter a valid password",
+  })
+})
+type LoginData = z.infer<typeof loginFormSchema>
+
 
 interface AuthenticationFormProps {
   mode: AuthModes;
 }
 
 export function AuthenticationForm({mode}: AuthenticationFormProps) {
-  const form = useForm<z.infer<typeof authFormSchema>>({
-    resolver: zodResolver(authFormSchema),
+  const form = useForm<LoginData | RegisterData>({
+    resolver: zodResolver(mode === AuthModes.login ? loginFormSchema : registerFormSchema),
     defaultValues: {
       email: "",
       username: "",
       password: "",
     },
   })
-
-  const handleSubmit = async (formData: FormData) => {
-    const data = Object.fromEntries(formData.entries()) as { email: string, username: string, password: string };
-    const success = await authenticate(data, mode);
-
-    if(!success) toast.error("Failed to authenticate");
-  }
+  const authAction = mode === AuthModes.login ? signIn : signUp
 
   return (
     <div className={'w-full mt-4'}>
       <Form {...form}>
-        <form action={handleSubmit} className="space-y-8">
+        <form
+          action={async(formData) =>{
+            const answer = await authAction(formData)
 
+            if(answer.ok) {
+              toast.success("YAY")
+              redirect("/")
+            } else {
+              toast.error(answer.message)
+            }
+          }}
+
+          className="space-y-8"
+        >
           {mode == AuthModes.register && (
             <FormField
               control={form.control}
