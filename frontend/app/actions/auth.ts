@@ -6,7 +6,6 @@ import {NodeHttpTransport} from "@improbable-eng/grpc-web-node-http-transport";
 import {grpc} from "@improbable-eng/grpc-web";
 import {cookies} from "next/headers";
 import {jwtDecode} from "jwt-decode";
-import {ZodJWT} from "zod/v4";
 import {JansCooleJWTPayloads} from "@/lib/types";
 
 
