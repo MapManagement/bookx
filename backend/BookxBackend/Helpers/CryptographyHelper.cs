@@ -16,7 +16,7 @@ public static class CryptographyHelper
     private const int _keySize = 64;
     private const int _iterations = 500_000;
     private const string _jwtSecurityAlgorithm = SecurityAlgorithms.HmacSha384;
-    private static readonly HashAlgorithmName _passwordHashAlgorithm = HashAlgorithmName.SHA3_512;
+    private static readonly HashAlgorithmName _passwordHashAlgorithm = HashAlgorithmName.SHA512;
     private static readonly string _passwordPepper;
     private static readonly string _jwtIssuerDomain;
     internal static readonly SymmetricSecurityKey JwtSecurityKey;
