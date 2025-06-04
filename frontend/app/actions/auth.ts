@@ -5,6 +5,9 @@ import {AuthenticatorClient, ServiceError} from "@/lib/proto/authentication_pb_s
 import {NodeHttpTransport} from "@improbable-eng/grpc-web-node-http-transport";
 import {grpc} from "@improbable-eng/grpc-web";
 import {cookies} from "next/headers";
+import {jwtDecode} from "jwt-decode";
+import {ZodJWT} from "zod/v4";
+import {JansCooleJWTPayloads} from "@/lib/types";
 
 
 const client = new AuthenticatorClient("http://localhost:5001")
@@ -91,8 +94,11 @@ export async function signIn(formData: FormData) {
     const token = await loginRequest( username, password)
     const store = await cookies();
 
-    store.set("username", username)
+    const decodedToken = jwtDecode(token) as JansCooleJWTPayloads;
+
+
     store.set("token", token)
+    store.set("mail", decodedToken.email)
 
     return {ok: true, message: ""}
   } catch (errorMessage) {

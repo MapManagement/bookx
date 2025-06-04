@@ -26,8 +26,8 @@ const registerFormSchema = z.object({
   }).min(12, {
     message: "Enter a valid password",
   })
-})
-type RegisterData = z.infer<typeof registerFormSchema>
+});
+type RegisterData = z.infer<typeof registerFormSchema>;
 
 const loginFormSchema =  z.object({
   username: z.string({
@@ -40,13 +40,13 @@ const loginFormSchema =  z.object({
   }).min(12, {
     message: "Enter a valid password",
   })
-})
-type LoginData = z.infer<typeof loginFormSchema>
+});
+type LoginData = z.infer<typeof loginFormSchema>;
 
 
 interface AuthenticationFormProps {
   mode: AuthModes;
-}
+};
 
 export function AuthenticationForm({mode}: AuthenticationFormProps) {
   const form = useForm<LoginData | RegisterData>({
@@ -56,8 +56,8 @@ export function AuthenticationForm({mode}: AuthenticationFormProps) {
       username: "",
       password: "",
     },
-  })
-  const authAction = mode === AuthModes.login ? signIn : signUp
+  });
+  const authAction = mode === AuthModes.login ? signIn : signUp;
 
   return (
     <div className={'w-full mt-4'}>
@@ -129,5 +129,5 @@ export function AuthenticationForm({mode}: AuthenticationFormProps) {
         </form>
       </Form>
     </div>
-  )
+  );
 }
