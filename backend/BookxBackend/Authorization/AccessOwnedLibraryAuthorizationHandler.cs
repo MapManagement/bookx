@@ -38,20 +38,13 @@ public class AccessOwnedLibraryAuthorizationHandler : AuthorizationHandler<Acces
 
         var authenticatedUser = await _bookxContext.Users.FindAsync(userId);
 
-        Console.WriteLine("In here");
-
         if (authenticatedUser.JwtVersion <= userJwtVersion)
         {
-
-            Console.WriteLine(authenticatedUser.JwtVersion);
-            Console.WriteLine(userJwtVersion);
-
             context.Succeed(requirement);
         }
         else
         {
             context.Fail();
         }
-
     }
 }
