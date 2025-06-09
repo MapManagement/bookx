@@ -1,7 +1,9 @@
+using Bookx.Authorization;
 using Bookx.Services;
 using Bookx.Models;
 using Bookx.Helpers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
@@ -39,7 +41,14 @@ builder.Services.AddCors(o => o.AddPolicy("AllowAll", builder =>
             .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
 }));
 
-builder.Services.AddAuthorization();
+builder.Services.AddScoped<IAuthorizationHandler, AccessOwnedLibraryAuthorizationHandler>();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ValidJwt", policy =>
+        policy.Requirements.Add(new AccessOwnedLibraryRequirement())
+    );
+});
 
 var app = builder.Build();
 
