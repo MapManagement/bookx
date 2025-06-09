@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 
 namespace Bookx.Services;
 
-[Authorize]
+[Authorize(Policy = "ValidJwt")]
 public class UserRelatedService : UserService.UserServiceBase
 {
     #region Fields
@@ -444,6 +444,7 @@ public class UserRelatedService : UserService.UserServiceBase
     private int? GetUserIdFromClaim(ServerCallContext context)
     {
         var userIdClaim = context.GetHttpContext().User.FindFirst(JwtRegisteredClaimNames.Sub);
+        var userJwtVersion = context.GetHttpContext().User.FindFirst(JwtRegisteredClaimNames.Jti);
 
         int userId;
         var validUserId = Int32.TryParse(userIdClaim?.Value, out userId);

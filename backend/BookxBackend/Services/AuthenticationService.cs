@@ -16,7 +16,7 @@ public class AuthenticationService : Authenticator.AuthenticatorBase
         _bookxContext = bookxContext;
     }
 
-    public override Task<LoginReply> Login(LoginRequest request, ServerCallContext context)
+    public override async Task<LoginReply> Login(LoginRequest request, ServerCallContext context)
     {
         var loginUser = _bookxContext.Users.FirstOrDefault(u => u.Username == request.Username);
 
@@ -28,7 +28,7 @@ public class AuthenticationService : Authenticator.AuthenticatorBase
         if (loginUser == null || string.IsNullOrWhiteSpace(request.Username))
         {
             loginReply.FailureMessage = "Login credentials are wrong.";
-            return Task.FromResult(loginReply);
+            return loginReply;
         }
 
         bool isValidLogin = CryptographyHelper.VerfiyPasswordHash(
@@ -40,15 +40,15 @@ public class AuthenticationService : Authenticator.AuthenticatorBase
         if (!isValidLogin)
         {
             loginReply.FailureMessage = "Login credentials are wrong.";
-            return Task.FromResult(loginReply);
+            return loginReply;
         }
 
-        var jwt = CryptographyHelper.GenerateJwt(loginUser.Id, loginUser.MailAddress);
+        var jwt = await RetrieveNewJwt(loginUser);
 
         loginReply.ValidLogin = true;
         loginReply.Token = jwt;
 
-        return Task.FromResult(loginReply);
+        return loginReply;
     }
 
     public override async Task<RegisterReply> Register(RegisterRequest request, ServerCallContext context)
@@ -92,17 +92,29 @@ public class AuthenticationService : Authenticator.AuthenticatorBase
             Password = passwordHash,
             PasswordSalt = passwordSalt,
             JoinDatetime = DateTime.Now.ToUniversalTime(),
-            MailAddress = request.MailAddress
+            MailAddress = request.MailAddress,
+            JwtVersion = 0
         };
 
         _bookxContext.Users.Add(newUser);
         await _bookxContext.SaveChangesAsync();
 
-        var jwt = CryptographyHelper.GenerateJwt(newUser.Id, newUser.MailAddress);
+        var jwt = await RetrieveNewJwt(newUser);
 
         registerReply.ValidRegistration = true;
         registerReply.Token = jwt;
 
         return registerReply;
+    }
+
+    private async Task<string> RetrieveNewJwt(User loginUser)
+    {
+        // TODO: race conditions?
+        int newJwtVersion = ++loginUser.JwtVersion;
+        await _bookxContext.SaveChangesAsync();
+
+        var jwt = CryptographyHelper.GenerateJwt(loginUser.Id, loginUser.Username, newJwtVersion);
+
+        return jwt;
     }
 }
